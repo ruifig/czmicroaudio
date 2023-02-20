@@ -1,0 +1,23 @@
+{
+	"name": "czmicroaudio",
+	"description": "Game audio engine focused on microcontrollers",
+	"keywords": "game, audio, mod, wav, it",
+	"homepage": "https://crazygaze.com",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ruifig/czmicroaudio.git"
+	},
+	"version": "0.0.1",
+	"authors":{
+		"name" : "Rui Figueira",
+		"url": "https://crazygaze.com"
+	},
+	"exclude": [
+	],
+	"frameworks": "*",
+	"platforms": "*",
+	"build" : {
+		"unflags" : ["-std=c++11", "-std=gnu+11"],
+		"flags" : [ "-std=c++17", "-std=gnu++17"]
+	}
+}
