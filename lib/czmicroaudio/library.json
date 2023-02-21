@@ -12,12 +12,23 @@
 		"name" : "Rui Figueira",
 		"url": "https://crazygaze.com"
 	},
-	"exclude": [
-	],
+	"export" :
+	{
+		"include": [
+		],
+		"exclude": [
+			"CMakeLists.txt"
+		]
+	},
 	"frameworks": "*",
 	"platforms": "*",
 	"build" : {
+		"includeDir" : ".",
 		"unflags" : ["-std=c++11", "-std=gnu+11"],
-		"flags" : [ "-std=c++17", "-std=gnu++17"]
+		"flags" : [
+			"-std=c++17",
+			"-std=gnu++17",
+			"-I include"
+		]
 	}
 }
