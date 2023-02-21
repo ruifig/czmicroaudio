@@ -1,4 +1,4 @@
-#include "Foo.h"
+#include "czmicroaudio/Foo.h"
 
 Foo::Foo()
 {
@@ -12,3 +12,4 @@ int Foo::add(int a, int b)
 {
 	return a + b;
 }
+

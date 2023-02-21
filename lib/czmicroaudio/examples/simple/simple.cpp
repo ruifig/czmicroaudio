@@ -13,3 +13,4 @@ void loop()
 	Serial1.println(foo.add(micros(), 0));
 	delay(1000);
 }
+
