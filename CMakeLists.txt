@@ -36,7 +36,6 @@ include(cmake/utils.cmake)
 # Set all targets to use Unicode
 add_definitions(-DUNICODE -D_UNICODE)
 add_subdirectory(./windowsHAL)
-add_subdirectory(./lib/czmicroaudio)
-add_subdirectory(./lib/czmicroaudio/examples)
+add_subdirectory(./lib)
 
 

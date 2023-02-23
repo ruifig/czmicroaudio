@@ -8,5 +8,4 @@ set(SOURCE_FILES
 add_library(windowsHAL STATIC ${SOURCE_FILES})
 target_include_directories(windowsHAL PUBLIC "./")
 # target_link_libraries(czmicroaudio somelibraries)
-source_group("Source Files" FILES ${SOURCE_FILES})
-
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})

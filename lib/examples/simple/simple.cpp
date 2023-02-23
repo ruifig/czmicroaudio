@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <czmicroaudio/Foo.h>
+#include <crazygaze/microaudio/Foo.h>
 
 Foo foo;
 void setup()
