@@ -17,7 +17,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 // forward declarations
@@ -227,7 +227,7 @@ private:
 };
 
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz
 
 

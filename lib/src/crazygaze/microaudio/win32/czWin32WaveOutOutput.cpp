@@ -15,7 +15,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 class Win32WaveOutOutputImpl : public ::cz::Object
@@ -361,6 +361,6 @@ void Win32WaveOutOutput::UnlockMixer()
 	m_impl->UnlockMixer();
 }
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz
 

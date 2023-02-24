@@ -48,7 +48,6 @@ set(SOURCE_FILES
 	"src/crazygaze/microaudio/czStaticSound.h"
 	"src/crazygaze/microaudio/czStream.cpp"
 	"src/crazygaze/microaudio/czStream.h"
-	"src/crazygaze/microaudio/czUtils.h"
 	"src/crazygaze/microaudio/czWAVLoader.cpp"
 	"src/crazygaze/microaudio/czWAVLoader.h"
 

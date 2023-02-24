@@ -11,7 +11,7 @@
 
 namespace cz
 {
-	namespace audio
+	namespace microaudio
 	{
 		const int16_t g_MOD_periods[MOD_NUMPERIODS] = {
 			1814,1801,1788,1775,1762,1749,1737,1724,

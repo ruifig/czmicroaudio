@@ -15,7 +15,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 
@@ -420,7 +420,7 @@ public:
 
 	/*!
 	 * \brief Changes the master volume
-	 * \param vol Master volume. From 0 to \link cz::audio::AUDIO_MASTERVOL_MAX \endlink
+	 * \param vol Master volume. From 0 to \link cz::microaudio::AUDIO_MASTERVOL_MAX \endlink
 	 * \return ERR_OK on success, other on error
  	*/
 	virtual int SetSFXMasterVolume(int vol) = 0;

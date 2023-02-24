@@ -19,7 +19,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 
@@ -986,7 +986,7 @@ int MODModule::GetSpeed(void) {
 	return m_speed;
 }
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz
 
 

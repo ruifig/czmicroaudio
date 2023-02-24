@@ -37,5 +37,6 @@ include(cmake/utils.cmake)
 add_definitions(-DUNICODE -D_UNICODE)
 add_subdirectory(./windowsHAL)
 add_subdirectory(./lib)
+add_subdirectory(./docs)
 
 

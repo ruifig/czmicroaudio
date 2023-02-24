@@ -12,7 +12,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 
@@ -78,5 +78,5 @@ void* SoundBuffer::GetPtrToSample(int channel, int sampleOffset)
 }
 
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz

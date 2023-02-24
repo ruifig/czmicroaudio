@@ -36,7 +36,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 
@@ -228,7 +228,7 @@ void ITModule::ResetMembers(void)
  
 \sa Init()
 */
-ITModule::ITModule(::cz::Core *parentObject) : ::cz::audio::Module(parentObject)
+ITModule::ITModule(::cz::Core *parentObject) : ::cz::microaudio::Module(parentObject)
 {
 	PROFILE();
 
@@ -2924,7 +2924,7 @@ int ITModule::Backward(void)
 
 
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz
 
 

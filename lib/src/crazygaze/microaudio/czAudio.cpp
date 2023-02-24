@@ -15,10 +15,10 @@ namespace cz
 {
 
 
-namespace audio
+namespace microaudio
 {
 
 
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz

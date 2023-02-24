@@ -17,7 +17,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 
@@ -42,7 +42,7 @@ private:
 };
 
 
-} // end namespace audio
+} // end namespace microaudio
 } // end namespace cz
 
 #endif

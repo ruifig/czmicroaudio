@@ -19,7 +19,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 // Using Pimpl pattern do we don't need add Windows's Mmsystem.h to the global scope
@@ -49,7 +49,7 @@ private:
 	Win32WaveOutOutputImpl* m_impl = nullptr;
 };
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz
 
 #endif

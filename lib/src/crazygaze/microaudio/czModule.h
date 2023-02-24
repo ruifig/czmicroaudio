@@ -24,7 +24,7 @@ namespace cz
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 // forward declarations

@@ -12,7 +12,7 @@
 
 namespace cz
 {
-	namespace audio
+	namespace microaudio
 	{
 		enum
 		{

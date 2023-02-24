@@ -12,7 +12,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 Module::Module(::cz::Core *parentObject) : ::cz::Object(parentObject)
@@ -25,5 +25,5 @@ Module::~Module()
 {
 }
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz

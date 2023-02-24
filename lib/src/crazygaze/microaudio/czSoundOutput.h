@@ -32,7 +32,7 @@ namespace cz
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 
@@ -82,7 +82,7 @@ typedef struct
 * \sa \link Play \endlink
 * \sa \link PlayModule \endlink
 */
-class SoundOutput : public ::cz::Object, public ::cz::audio::AudioPlayer
+class SoundOutput : public ::cz::Object, public ::cz::microaudio::AudioPlayer
 {
 public:	
 	SoundOutput(::cz::Core *parentObject);
@@ -143,7 +143,7 @@ public:
 	//virtual void* GetParent();
 
 protected:
-	friend ::cz::audio::AudioPlayer* ::cz::audio::AudioPlayer::Create(Core *core, AudioPlayerConfig *cfg/* =NULL */);
+	friend ::cz::microaudio::AudioPlayer* ::cz::microaudio::AudioPlayer::Create(Core *core, AudioPlayerConfig *cfg/* =NULL */);
 	int FeedData(void *ptr, int numFrames);
 	void UpdateStatus(void);
 	virtual int Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits16, int freq );
@@ -185,7 +185,7 @@ public:
 
 };
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz
 
 #endif

@@ -14,7 +14,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 
@@ -605,5 +605,5 @@ bool WAVLoader::CheckFormat(::cz::io::File *in)
 }
 
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz

@@ -27,11 +27,11 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 //! Only supports ogg vorbis at the moment
-class StreamSound : public ::cz::Object, public ::cz::audio::ChannelMixingListener
+class StreamSound : public ::cz::Object, public ::cz::microaudio::ChannelMixingListener
 {
 
 public:
@@ -100,7 +100,7 @@ private:
 };
 
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz
 
 

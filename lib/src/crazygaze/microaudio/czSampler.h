@@ -18,7 +18,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 	enum SoundBufferType
@@ -87,12 +87,7 @@ namespace audio
 
 	};
 
-	class StreamSampler : public Sampler
-	{
-		virtual bool GetAudioData(AudioSourceRequest &info) = 0;
-	};
-
-} // namespace audio
+} // namespace microaudio
 } // namespace cz
 
 #endif

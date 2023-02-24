@@ -10,7 +10,7 @@
 namespace cz
 {
 
-	namespace audio
+	namespace microaudio
 	{
 		const uint8_t g_IT_pantable[16]={0,4,9,13,17,21,26,30,34,38,43,47,51,55,60,64};
 		const uint8_t g_IT_SlideTable[9]={1,4,8,16,32,64,96,128,255};

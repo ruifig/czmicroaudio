@@ -64,21 +64,21 @@ void loop()
 	cfg.memoryProvider = &framework;
 	cfg.logger = &framework;
 	cz::Core *core = cz::Core::Create(&cfg);
-	cz::audio::AudioPlayer *player = cz::audio::AudioPlayer::Create(core);
+	cz::microaudio::AudioPlayer *player = cz::microaudio::AudioPlayer::Create(core);
 
 	// Load sounds
-	cz::audio::HSOUNDDATA hAmbientLoopData = player->LoadWAV("../media/554_bebeto_Ambient_loop_mono_11025.wav");
-	cz::audio::HSOUNDDATA hWaterDropData = player->LoadWAV("../media/30341_junggle_waterdrop24_44100.wav");
+	cz::microaudio::HSOUNDDATA hAmbientLoopData = player->LoadWAV("../media/554_bebeto_Ambient_loop_mono_11025.wav");
+	cz::microaudio::HSOUNDDATA hWaterDropData = player->LoadWAV("../media/30341_junggle_waterdrop24_44100.wav");
 	
 	// Set ambient sound loop to all
-	//player->SetSoundDefaultLoop(hAmbientLoopData, cz::audio::AUDIO_LOOP_NORMAL);
+	//player->SetSoundDefaultLoop(hAmbientLoopData, cz::microaudio::AUDIO_LOOP_NORMAL);
 	// Change the default volume for the ambient loop to a lot lower, so we can hear the water drop more clearly
-	//player->SetSoundDefaults(hAmbientLoopData,-1,cz::audio::AUDIO_VOL_MAX/4);
+	//player->SetSoundDefaults(hAmbientLoopData,-1,cz::microaudio::AUDIO_VOL_MAX/4);
 
-	cz::audio::HSOUND hAmbientLoop=0; // Used to keep control of the ambient sound
+	cz::microaudio::HSOUND hAmbientLoop=0; // Used to keep control of the ambient sound
 
 	// Play the looped sounds. You could have saved the return value to later control the playing sound
-	player->Play(hAmbientLoopData, -1, -1, cz::audio::SOUND_LOOP_NORMAL);
+	player->Play(hAmbientLoopData, -1, -1, cz::microaudio::SOUND_LOOP_NORMAL);
 
 	printf("1   - Play water drop (More presses will play the sound repeatedly)\n");
 	printf("ESC - Exit.\n");

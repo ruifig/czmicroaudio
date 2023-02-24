@@ -109,23 +109,23 @@ void Core::InitGlobalPointers()
 	errorStrings = g_czErrors;
 
 	// Tables for IT support
-	IT_pantable = audio::g_IT_pantable;
-	IT_SlideTable = audio::g_IT_SlideTable;
-	IT_FineSineData = audio::g_IT_FineSineData;
-	IT_FineRampDownData = audio::g_IT_FineRampDownData;
-	IT_FineSquareWave = audio::g_IT_FineSquareWave;
-	IT_PitchTable = (const uint32_t*)audio::g_IT_PTable;
-	IT_FineLinearSlideUpTable = (const uint32_t*) audio::g_IT_FLSUTable;
-	IT_LinearSlideUpTable = (const uint32_t*) audio::g_IT_LSUTable;
-	IT_FineLinearSlideDownTable = audio::g_IT_FLSDTable;
-	IT_LinearSlideDownTable = audio::g_IT_LSDTable;
+	IT_pantable = microaudio::g_IT_pantable;
+	IT_SlideTable = microaudio::g_IT_SlideTable;
+	IT_FineSineData = microaudio::g_IT_FineSineData;
+	IT_FineRampDownData = microaudio::g_IT_FineRampDownData;
+	IT_FineSquareWave = microaudio::g_IT_FineSquareWave;
+	IT_PitchTable = (const uint32_t*)microaudio::g_IT_PTable;
+	IT_FineLinearSlideUpTable = (const uint32_t*) microaudio::g_IT_FLSUTable;
+	IT_LinearSlideUpTable = (const uint32_t*) microaudio::g_IT_LSUTable;
+	IT_FineLinearSlideDownTable = microaudio::g_IT_FLSDTable;
+	IT_LinearSlideDownTable = microaudio::g_IT_LSDTable;
 
 	// Tables for MOD support
-	MOD_periods = audio::g_MOD_periods;
-	MOD_waveFormsPtrs[0]= audio::g_MOD_sineWave;
-	MOD_waveFormsPtrs[1]= audio::g_MOD_rampdownWave;
-	MOD_waveFormsPtrs[2]= audio::g_MOD_squareWave;
-	MOD_waveFormsPtrs[3]= audio::g_MOD_randomWave;
+	MOD_periods = microaudio::g_MOD_periods;
+	MOD_waveFormsPtrs[0]= microaudio::g_MOD_sineWave;
+	MOD_waveFormsPtrs[1]= microaudio::g_MOD_rampdownWave;
+	MOD_waveFormsPtrs[2]= microaudio::g_MOD_squareWave;
+	MOD_waveFormsPtrs[3]= microaudio::g_MOD_randomWave;
 
 }
 

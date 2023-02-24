@@ -16,7 +16,7 @@ namespace cz
 
 using namespace io;
 	
-namespace audio
+namespace microaudio
 {
 
 #if CZ_PLAYER_OGG_ENABLED
@@ -231,7 +231,7 @@ bool StreamSound::ChannelMix(int mixpos, int numframes)
 		{
 			// We need to copy some frames to the end of the buffer, otherwise we'll get clicks when mixing at the end, since linear/cubic interpolation
 			// will grab samples from outside
-			memcpy(m_snd.GetPtrToFrame(m_snd.GetNumFrames()), m_snd.GetPtrToFrame(0), ::cz::audio::SOUND_SAFETYAREA*m_snd.GetFrameSizeBytes());
+			memcpy(m_snd.GetPtrToFrame(m_snd.GetNumFrames()), m_snd.GetPtrToFrame(0), ::cz::microaudio::SOUND_SAFETYAREA*m_snd.GetFrameSizeBytes());
 		}
 
 		m_lastPos = mixpos;
@@ -254,7 +254,7 @@ bool StreamSound::ChannelMix(int mixpos, int numframes)
 		// We need to copy some frames to the end of the buffer, otherwise we'll get clicks when mixing at the end, since linear/cubic interpolation
 		// will grab samples from outside
 		if (framesDone2)
-			memcpy(m_snd.GetPtrToFrame(m_snd.GetNumFrames()), m_snd.GetPtrToFrame(0), ::cz::audio::SOUND_SAFETYAREA*m_snd.GetFrameSizeBytes());
+			memcpy(m_snd.GetPtrToFrame(m_snd.GetNumFrames()), m_snd.GetPtrToFrame(0), ::cz::microaudio::SOUND_SAFETYAREA*m_snd.GetFrameSizeBytes());
 
 		m_lastPos = mixpos;
 
@@ -272,6 +272,6 @@ bool StreamSound::ChannelMix(int mixpos, int numframes)
 	return true;
 }
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz
 

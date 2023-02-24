@@ -13,7 +13,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 // Constructor to czStaticSound objects.
@@ -248,5 +248,5 @@ void StaticSound::SetToSilence()
 	memset(m_startptr, 0, m_allocatedSize);
 }
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz

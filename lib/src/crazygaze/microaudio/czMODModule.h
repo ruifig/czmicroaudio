@@ -26,7 +26,7 @@ namespace cz
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 
@@ -203,7 +203,7 @@ private:
 	void DoPortamentoDown(MODTRACK *trk, bool fine=false);
 };
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz
 
 #endif

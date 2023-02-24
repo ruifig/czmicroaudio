@@ -23,7 +23,7 @@ czMophunFile raw;
 namespace cz
 {
 	
-namespace audio
+namespace microaudio
 {
 
 
@@ -2171,5 +2171,5 @@ int Mixer::IsVoiceGoingBack(int ch)
 
 #endif // CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz

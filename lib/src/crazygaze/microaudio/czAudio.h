@@ -21,7 +21,7 @@ namespace cz
 /*!
  * \brief Contains %audio functionality
  */
-namespace audio
+namespace microaudio
 {
 
 	/*!

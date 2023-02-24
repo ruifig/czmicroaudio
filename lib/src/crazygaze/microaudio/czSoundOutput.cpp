@@ -38,7 +38,7 @@
 
 namespace cz
 {
-namespace audio
+namespace microaudio
 {
 
 
@@ -981,6 +981,6 @@ AudioPlayer* AudioPlayer::Create(Core *core, AudioPlayerConfig *cfg)
 
 }
 
-} // namespace audio
+} // namespace microaudio
 } // namespace cz
 

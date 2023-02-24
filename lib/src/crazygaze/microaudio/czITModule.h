@@ -13,7 +13,7 @@
 namespace cz
 {
 
-namespace audio
+namespace microaudio
 {
 
 // forward declarations
@@ -326,7 +326,7 @@ typedef int (*CZSTREAMWRITER_CALLBACK)(int curr, int max);
 //! Class to play IT Module files
 /*
 */
-class ITModule : public ::cz::audio::Module {
+class ITModule : public Module {
 
 	public:
 
@@ -580,7 +580,7 @@ private:
 };
 
 
-} // namespace audio
+} // namespace microaudio
 
 } // namespace cz
 
