@@ -102,38 +102,6 @@ void Core::OnLog(LogLevel level, const char *fmt, ...)
 }
 #endif
 
-#if CZ_PLATFORM==CZ_PLATFORM_WIN32
-#include <Windows.h>
-#elif CZ_PLATFORM==CZ_PLATFORM_SYMBIAN
-#include <hal.h>
-#endif
-s32 GetMicroseconds()
-{
-#if CZ_PLATFORM==CZ_PLATFORM_WIN32
-	LARGE_INTEGER counter,freq;
-	QueryPerformanceFrequency(&freq);
-	QueryPerformanceCounter(&counter);
-	double dret = ((double(counter.QuadPart)*double(1000))  / (double)freq.QuadPart);
-	s32 ret = (s32)dret;
-	return ret;
-#elif CZ_PLATFORM==CZ_PLATFORM_SYMBIAN
-
-	TTime timeNow;
-	timeNow.HomeTime();
-	TDateTime midnight(timeNow.DateTime().Year(),timeNow.DateTime().Month(), timeNow.DateTime().Day(),0,0,0,0);
-	TTimeIntervalMicroSeconds microseconds = timeNow.MicroSecondsFrom(TTime(midnight));
-#ifdef __SERIES60_30__
-	int ret = microseconds.Int64()/1000;
-#else
-	int ret = (microseconds.Int64()/1000).GetTInt();
-#endif
-
-#else
-	return 0;
-#endif
-}
-
-
 void Core::InitGlobalPointers()
 {
 	//	char **g = g_czErrors;
@@ -146,9 +114,9 @@ void Core::InitGlobalPointers()
 	IT_FineSineData = audio::g_IT_FineSineData;
 	IT_FineRampDownData = audio::g_IT_FineRampDownData;
 	IT_FineSquareWave = audio::g_IT_FineSquareWave;
-	IT_PitchTable = (const u32*)audio::g_IT_PTable;
-	IT_FineLinearSlideUpTable = (const u32*) audio::g_IT_FLSUTable;
-	IT_LinearSlideUpTable = (const u32*) audio::g_IT_LSUTable;
+	IT_PitchTable = (const uint32_t*)audio::g_IT_PTable;
+	IT_FineLinearSlideUpTable = (const uint32_t*) audio::g_IT_FLSUTable;
+	IT_LinearSlideUpTable = (const uint32_t*) audio::g_IT_LSUTable;
 	IT_FineLinearSlideDownTable = audio::g_IT_FLSDTable;
 	IT_LinearSlideDownTable = audio::g_IT_LSDTable;
 

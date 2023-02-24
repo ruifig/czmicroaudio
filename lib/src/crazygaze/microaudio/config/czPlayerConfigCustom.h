@@ -15,14 +15,14 @@ namespace cz
 {
 
 
-#if CZ_PLATFORM==CZ_PLATFORM_WIN32
+#if CZ_PLATFORM_WIN32
 
-#elif CZ_PLATFORM==CZ_PLATFORM_BADA
+#elif CZ_PLATFORM_ARDUINO
 
 #endif
-
 
 
 } // namespace cz
 
 #endif // _czPlayerConfigCustom_h_
+

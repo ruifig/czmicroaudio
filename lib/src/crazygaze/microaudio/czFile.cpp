@@ -46,7 +46,7 @@ int File::WriteString(const char *str)
 	int ret = ERR_OK;
 	if (strlen(str)>0) ret = WriteData(str, strlen(str));
 	if (ret==ERR_OK){
-		s16 nl = 0x0A0D;
+		int16_t nl = 0x0A0D;
 		ret = WriteData(&nl, sizeof nl);
 	}
 	m_isInsideWriteString = false;

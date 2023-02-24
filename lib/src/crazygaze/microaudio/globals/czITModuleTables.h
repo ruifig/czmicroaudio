@@ -12,12 +12,12 @@ namespace cz
 
 	namespace audio
 	{
-		const u8 g_IT_pantable[16]={0,4,9,13,17,21,26,30,34,38,43,47,51,55,60,64};
-		const u8 g_IT_SlideTable[9]={1,4,8,16,32,64,96,128,255};
+		const uint8_t g_IT_pantable[16]={0,4,9,13,17,21,26,30,34,38,43,47,51,55,60,64};
+		const uint8_t g_IT_SlideTable[9]={1,4,8,16,32,64,96,128,255};
 
 
 		//FineSineData       Label   Byte
-		const s8 g_IT_FineSineData[256]={
+		const int8_t g_IT_FineSineData[256]={
 			0,  2,  3,  5,  6,  8,  9, 11, 12, 14, 16, 17, 19, 20, 22, 23,
 			24, 26, 27, 29, 30, 32, 33, 34, 36, 37, 38, 39, 41, 42, 43, 44,
 			45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 56, 57, 58, 59,
@@ -37,7 +37,7 @@ namespace cz
 		};
 
 		//FineRampDownData   Label   Byte
-		const s8 g_IT_FineRampDownData[256]={
+		const int8_t g_IT_FineRampDownData[256]={
 			64, 63, 63, 62, 62, 61, 61, 60, 60, 59, 59, 58, 58, 57, 57, 56,
 			56, 55, 55, 54, 54, 53, 53, 52, 52, 51, 51, 50, 50, 49, 49, 48,
 			48, 47, 47, 46, 46, 45, 45, 44, 44, 43, 43, 42, 42, 41, 41, 40,
@@ -58,7 +58,7 @@ namespace cz
 
 		//FineSquareWave     Label   Byte
 		//        DB      128 Dup (64), 128 Dup (0)
-		const s8 g_IT_FineSquareWave[256]={
+		const int8_t g_IT_FineSquareWave[256]={
 			64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
 			64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
 			64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
@@ -79,7 +79,7 @@ namespace cz
 
 
 		//Values are 16.16 bit
-		const u16 g_IT_PTable[240]={
+		const uint16_t g_IT_PTable[240]={
 			2048, 0,   2170, 0,   2299, 0,   2435, 0,   2580, 0,   2734, 0,  // C-0
 			2896, 0,   3069, 0,   3251, 0,   3444, 0,   3649, 0,   3866, 0,
 			4096, 0,   4340, 0,   4598, 0,   4871, 0,   5161, 0,   5468, 0,  // C-1
@@ -103,7 +103,7 @@ namespace cz
 		};
 
 		//FineLinearSlideUpTable  Label ; Values are 16.16 bit
-		const u16 g_IT_FLSUTable[32]={
+		const uint16_t g_IT_FLSUTable[32]={
 			0, 1,     59, 1,    118, 1,   178, 1,   237, 1,  // 0->4
 			296, 1,   356, 1,   415, 1,   475, 1,   535, 1,  // 5->9
 			594, 1,   654, 1,   714, 1,   773, 1,   833, 1,  // 10->14
@@ -111,7 +111,7 @@ namespace cz
 		};
 
 		//      Label ; Value = 2^(Val/192), Values are 16.16 bit
-		const u16 g_IT_LSUTable[514]={
+		const uint16_t g_IT_LSUTable[514]={
 			0,     1, 237,   1, 475,   1, 714,   1, 953,  1, // 0->4
 			1194,  1, 1435,  1, 1677,  1, 1920,  1, 2164, 1, // 5->9
 			2409,  1, 2655,  1, 2902,  1, 3149,  1, 3397, 1, // 10->14
@@ -167,13 +167,13 @@ namespace cz
 		};
 
 		//FineLinearSlideDownTable Label ; Values are 0.16 bit
-		const u16 g_IT_FLSDTable[16]={
+		const uint16_t g_IT_FLSDTable[16]={
 			65535, 65477, 65418, 65359, 65300, 65241, 65182, 65359, //0->7
 			65065, 65006, 64947, 64888, 64830, 64772, 64713, 64645, //8->15
 		};
 
 		//LinearSlideDownTable    Label ; Values are 0.16 bit
-		const u16 g_IT_LSDTable[257]={
+		const uint16_t g_IT_LSDTable[257]={
 			65535, 65300, 65065, 64830, 64596, 64364, 64132, 63901,  // 0->7
 			63670, 63441, 63212, 62984, 62757, 62531, 62306, 62081,  // 8->15
 			61858, 61635, 61413, 61191, 60971, 60751, 60532, 60314,  // 16->23

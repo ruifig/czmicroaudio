@@ -22,26 +22,26 @@ namespace audio
 struct WAVFormatChunk
 {
 	//char id[4]; // "fmt " - This is already checked in CheckFormat
-	u32 dataSize;
-	u16 wFormatTag;
-	u16 nChannels;
-	u32 nSamplesPerSec;
-	u32 nAvgBytesPerSec;
-	u16 nBlockAlign;
-	u16 bitsPerSample;
+	uint32_t dataSize;
+	uint16_t wFormatTag;
+	uint16_t nChannels;
+	uint32_t nSamplesPerSec;
+	uint32_t nAvgBytesPerSec;
+	uint16_t nBlockAlign;
+	uint16_t bitsPerSample;
 };
 
 struct WAVFactChunk
 {
 	char id[4]; // "fact"
-	s32 dataSize;
-	s32 numsamples;
+	int32_t dataSize;
+	int32_t numsamples;
 };
 
 struct WAVDataChunk
 {
 	char id[4]; // "data"
-	u32 dataSize;
+	uint32_t dataSize;
 };
 
 #define WAVE_FORMAT_PCM 1
@@ -77,7 +77,7 @@ public:
 	}
 	// - Decodes a block, using the "Out" method to output samples.
 	// - framesToDo - Total number of frames left to decode for the all sound
-	virtual void DecodeBlock(const u8 *src, int frames)
+	virtual void DecodeBlock(const uint8_t *src, int frames)
 	{
 		CZASSERT(0);
 	}
@@ -90,7 +90,7 @@ public:
 		CZASSERT(m_numSamplesPerBlock!=0); // ReadExtraFormatBytes must be called first
 		CZASSERT(m_fmt->nBlockAlign>0);
 
-		m_block = (u8*) CZALLOC(m_fmt->nBlockAlign);
+		m_block = (uint8_t*) CZALLOC(m_fmt->nBlockAlign);
 		if (m_block==NULL)
 			CZERROR(ERR_NOMEM);
 
@@ -113,13 +113,13 @@ public:
 	}
 
 protected:
-	u8 *m_block; // Block used to hold temporary data while decoding
+	uint8_t *m_block; // Block used to hold temporary data while decoding
 	::cz::io::File *m_file;
 	WAVFormatChunk *m_fmt;
 
-	void Out(s16 sample)
+	void Out(int16_t sample)
 	{
-		s16* ptr = (s16*)m_soundDst;
+		int16_t* ptr = (int16_t*)m_soundDst;
 		*ptr++ = sample;
 		m_soundDst = ptr;
 		m_framesDecoded++;
@@ -193,15 +193,15 @@ public:
 	# compute next adaptive scale factor: idelta = (AdaptationTable[nibble] * idelta) / 256
 	# clamp idelta to lower bound of 16
 	*/
-	virtual void DecodeBlock(const u8 *src, int frames)
+	virtual void DecodeBlock(const uint8_t *src, int frames)
 	{
 		CZASSERT(frames>0);
 
-		s32 predictor=0; // -32768.. 32767
-		s32 stepIndex; // 0..88
-		s32 step; //
+		int32_t predictor=0; // -32768.. 32767
+		int32_t stepIndex; // 0..88
+		int32_t step; //
 	
-		predictor = *((s16*)(&src[0]));
+		predictor = *((int16_t*)(&src[0]));
 		stepIndex = src[2];
 		if (src[3]!=0)
 		{
@@ -213,7 +213,7 @@ public:
 		CZASSERT(stepIndex<=88);
 		step = m_stepTable[stepIndex];
 
-		Out((s16)predictor);
+		Out((int16_t)predictor);
 		frames--;
 		if (frames==0)
 			return;
@@ -221,7 +221,7 @@ public:
 		bool nibbleSwitch=true;
 		while(frames--)
 		{
-			u8 nibble;
+			uint8_t nibble;
 			// Get next nibble
 			if (nibbleSwitch)
 			{
@@ -241,9 +241,9 @@ public:
 				stepIndex = 88;
 
 			//...
-			u8 sign = nibble & 8;
-			u8 delta = nibble & 7;
-			s32 diff = step >> 3;
+			uint8_t sign = nibble & 8;
+			uint8_t delta = nibble & 7;
+			int32_t diff = step >> 3;
 			if (delta & 4) diff += step;
 			if (delta & 2) diff += step >> 1;
 			if (delta & 1) diff += step >> 2;
@@ -259,23 +259,23 @@ public:
 
 			step = m_stepTable[stepIndex];
 
-			Out((s16)predictor);
+			Out((int16_t)predictor);
 		}
 	
 	}
 
 private:
-	static const s8 IMAADPCMDecoder::m_indexTable[];
-	static const s16 IMAADPCMDecoder::m_stepTable[];
+	static const int8_t m_indexTable[];
+	static const int16_t m_stepTable[];
 };
 
 /* Intel ADPCM step variation table */
-const s8 IMAADPCMDecoder::m_indexTable[16] = {
+const int8_t IMAADPCMDecoder::m_indexTable[16] = {
 	-1, -1, -1, -1, 2, 4, 6, 8,
 	-1, -1, -1, -1, 2, 4, 6, 8,
 };
 
-const s16 IMAADPCMDecoder::m_stepTable[89] = {
+const int16_t IMAADPCMDecoder::m_stepTable[89] = {
 	7, 8, 9, 10, 11, 12, 13, 14, 16, 17,
 	19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
 	50, 55, 60, 66, 73, 80, 88, 97, 107, 118,
@@ -336,30 +336,30 @@ public:
 	# compute next adaptive scale factor: idelta = (AdaptationTable[nibble] * idelta) / 256
 	# clamp idelta to lower bound of 16
 	*/
-	virtual void DecodeBlock(const u8 *src, int frames)
+	virtual void DecodeBlock(const uint8_t *src, int frames)
 	{
 		CZASSERT(frames!=0);
 
 		// Read the block header
-		const u8 blockPredictor = src[0];
+		const uint8_t blockPredictor = src[0];
 
 		// Now we need to read 3 16-bits values, but they are not aligned (index 1,3,5), which crashes on ARM processors,
 		// so we need to use a mem copy instead of just assigning it
-		s16 temp_s16;
-		// same as:  s32 delta = *((s16*)(&src[1]))
+		int16_t temp_s16;
+		// same as:  int32_t delta = *((int16_t*)(&src[1]))
 		memcpy(&temp_s16, &src[1], 2);
-		s32 delta = temp_s16; 
-		// same as:  s16 sample1 = *((s16*)(&src[3]));
+		int32_t delta = temp_s16; 
+		// same as:  int16_t sample1 = *((int16_t*)(&src[3]));
 		memcpy(&temp_s16, &src[3], 2);
-		s16 sample1 = temp_s16; 
-		// same as:  s16 sample2 = *((s16*)(&src[5]));
+		int16_t sample1 = temp_s16; 
+		// same as:  int16_t sample2 = *((int16_t*)(&src[5]));
 		memcpy(&temp_s16, &src[5], 2);
-		s16 sample2 = temp_s16; 
+		int16_t sample2 = temp_s16; 
 
 		src += 7;
 		CZASSERT(blockPredictor<m_numCoefs);
-		s16 coef1 = m_coefs[blockPredictor].coef1;
-		s16 coef2 = m_coefs[blockPredictor].coef2;
+		int16_t coef1 = m_coefs[blockPredictor].coef1;
+		int16_t coef2 = m_coefs[blockPredictor].coef2;
 
 		//Output the first 2 samples we got from the header itself
 		Out(sample2);
@@ -372,7 +372,7 @@ public:
 		bool nibbleSwitch=true;
 		while(frames--)
 		{
-			u8 nibble;
+			uint8_t nibble;
 			// Get next nibble
 			if (nibbleSwitch)
 			{
@@ -386,14 +386,14 @@ public:
 			nibbleSwitch = !nibbleSwitch;
 
 			// Convert the nibble value to -8..7
-			s8 signedNibble = (nibble & 8) ? nibble-0x10 : nibble;
+			int8_t signedNibble = (nibble & 8) ? nibble-0x10 : nibble;
 
 			int predictor = ((int)sample1*coef1 + (int)sample2*coef2) / 256;
 			predictor += signedNibble * delta;
 			predictor = CLAMP(predictor,-32768, 32767);
-			Out((s16)predictor);
+			Out((int16_t)predictor);
 			sample2 = sample1;
-			sample1 = (s16)predictor;
+			sample1 = (int16_t)predictor;
 			delta = (adaptationTable[nibble]*delta)/256;
 			if (delta<16)
 				delta = 16;	
@@ -403,20 +403,20 @@ public:
 
 
 private:
-	static const s32 adaptationTable[];
+	static const int32_t adaptationTable[];
 
 	struct COEFS
 	{
-		s16 coef1; // 8.8 fixed point
-		s16 coef2; // 8.8 fixed point
+		int16_t coef1; // 8.8 fixed point
+		int16_t coef2; // 8.8 fixed point
 	};
 
-	u16 m_numCoefs;
+	uint16_t m_numCoefs;
 	COEFS *m_coefs;
 
 };
 
-const s32 MSADPCMDecoder::adaptationTable[16] =
+const int32_t MSADPCMDecoder::adaptationTable[16] =
 {
 	230, 230, 230, 230, 307, 409, 512, 614,
 	768, 614, 512, 409, 307, 230, 230, 230
@@ -505,7 +505,7 @@ int WAVLoader::Load(::cz::io::File *in, StaticSound **basesnd)
 
 	if (fmt.wFormatTag!=WAVE_FORMAT_PCM)
 	{
-		u16 extraFormatBytes = in->ReadUnsigned16();
+		uint16_t extraFormatBytes = in->ReadUnsigned16();
 	}
 
 	m_decoder->ReadExtraFormatBytes(); // The format of the extra bytes is format dependent, so call the appropriate virtual function
@@ -589,7 +589,7 @@ bool WAVLoader::CheckFormat(::cz::io::File *in)
 	// 4 bytes - RIFF Type ID ("WAVE")
 	// 4 bytes - ChunkID ("fmt ")
 	const int dsize = 4+4+4+4;
-	u8 header[dsize];
+	uint8_t header[dsize];
 
 	in->Seek(0, ::cz::io::FILE_SEEK_START);
 

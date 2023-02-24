@@ -11,7 +11,6 @@
 #include "czStandardC.h"
 #include "czDiskFile.h"
 
-#if CZ_PLAYER_OGG_ENABLED
 namespace cz
 {
 
@@ -20,6 +19,7 @@ using namespace io;
 namespace audio
 {
 
+#if CZ_PLAYER_OGG_ENABLED
 // Ogg callbacks to read from our stream
 size_t OggRead (void *ptr, size_t size, size_t nmemb, void *datasource)
 {
@@ -63,43 +63,7 @@ long OggTell (void *datasource)
 	::cz::io::File* f = static_cast<::cz::io::File*>(datasource);
 	return f->GetPos();
 }
-
-//////////////////////////////////////////////////////////////////////////
-// StreamChunkReader
-//////////////////////////////////////////////////////////////////////////
-/*
-StreamChunkReader::StreamChunkReader()
-{
-}
-
-StreamChunkReader::~StreamChunkReader()
-{
-
-}
-
-void StreamChunkReader::Init(StreamSound* parent, OggVorbis_File* info)
-{
-	m_parent = parent;
-	m_ogg = info;
-}
-
-//! \brief Called as a notification the work item was queued and is waiting to be processed
-void StreamChunkReader::OnQueued()
-{
-}
-
-//! \brief Called to do whatever the work unit needs to do
-WorkerThreadJob::Result StreamChunkReader::Run()
-{
-	return WORKERTHREAD_JOBRESULT_OK;
-}
-
-//! \brief Called when the work item is canceled (e.g: The Worker thread was requested to cancel all pending work items)
-void StreamChunkReader::OnCanceled()
-{
-
-}
-*/
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // StreamSound
@@ -125,6 +89,7 @@ StreamSound::~StreamSound()
 int StreamSound::Init(::cz::io::File *in, int workBufferNumFrames)
 {
 	m_in = in;
+#if CZ_PLAYER_OGG_ENABLED
 	ov_callbacks callbacks;
 	callbacks.read_func = OggRead;
 	callbacks.seek_func = OggSeek;
@@ -150,13 +115,13 @@ int StreamSound::Init(::cz::io::File *in, int workBufferNumFrames)
 	if (!(info->channels==1 || info->channels==2))
 		CZERROR(ERR_WRONGFORMAT);
 
-	/*
-	for (int i=0; i<kNUM_CHUNKS; i++)
-		m_jobs[i].Init(this, &m_ogg);
-	*/
-
 	m_snd.Set(SOUND_16BITS|SOUND_SIGNED| ((info->channels==1) ? SOUND_MONO : SOUND_STEREO), workBufferNumFrames);
 	m_snd.SetDefaults(info->rate);
+#else
+	m_snd.Set(SOUND_16BITS|SOUND_SIGNED|SOUND_MONO, workBufferNumFrames);
+	m_snd.SetDefaults(11025);
+#endif
+
 	return ERR_OK;
 }
 
@@ -170,7 +135,9 @@ int StreamSound::PrepareToPlay(bool loop)
 	m_lastPos = 0;
 	m_framesToMixBeforeFinish = -1;
 	m_loop = loop;
+#if CZ_PLAYER_OGG_ENABLED
 	ov_time_seek(&m_ogg, 0);
+#endif
 	m_snd.SetToSilence();
 	m_isplaying = true;
 	return ERR_OK;
@@ -183,6 +150,7 @@ void StreamSound::FinishedPlaying()
 
 int StreamSound::Decode(void* dest, int numframes)
 {
+#if CZ_PLAYER_OGG_ENABLED
 	int current_section;
 	long ret;
 	int bytesTodo = numframes*m_snd.GetFrameSizeBytes();
@@ -226,6 +194,9 @@ int StreamSound::Decode(void* dest, int numframes)
 	*/
 
 	return framesDone;
+#else
+	return numframes;
+#endif
 }
 
 bool StreamSound::ChannelMix(int mixpos, int numframes)
@@ -304,4 +275,3 @@ bool StreamSound::ChannelMix(int mixpos, int numframes)
 } // namespace audio
 } // namespace cz
 
-#endif

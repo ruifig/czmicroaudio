@@ -6,5 +6,6 @@
 
 build
 temp
+bin
 
 docs/*.vpp.bak_*

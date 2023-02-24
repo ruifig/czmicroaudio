@@ -27,7 +27,7 @@ namespace audio
 {
 
 
-inline int MakeFixed(u32 dividend,u16 divisor);
+inline int MakeFixed(uint32_t dividend,uint16_t divisor);
 extern "C" MXFUNC Mix8Mono_Normal;
 extern "C" MXFUNC Mix8Stereo_Normal;
 extern "C" MXFUNC Mix16Mono_Normal;
@@ -40,12 +40,12 @@ extern "C" MXFUNC Mix16Stereo_Normal;
 //
 //
 // FINAL OUTPUT TO 8 BITS
-void Mixer::MakeOutput(u8 *dest,u32 todo)
+void Mixer::MakeOutput(uint8_t *dest,uint32_t todo)
 {	
 	PROFILE();
 
-	s32 *src=m_mixblock;
-	s32 c;
+	int32_t *src=m_mixblock;
+	int32_t c;
 	while(todo--){
 		c=*src>>(VOLFRACBITS+8);
 		if(c>127)
@@ -53,7 +53,7 @@ void Mixer::MakeOutput(u8 *dest,u32 todo)
 		else if(c<-128)
 			*dest=0;
 		else
-			*dest=u8(c+128);
+			*dest=uint8_t(c+128);
 		dest++;
 		src++;
 	}
@@ -61,12 +61,12 @@ void Mixer::MakeOutput(u8 *dest,u32 todo)
 
 //
 // FINAL OUTPUT TO 16 BITS
-void Mixer::MakeOutput(u16 *dest,u32 todo)
+void Mixer::MakeOutput(uint16_t *dest,uint32_t todo)
 {
 	PROFILE();
 
-	s32 *src=m_mixblock;
-	s32 s;
+	int32_t *src=m_mixblock;
+	int32_t s;
 	while(todo--){
 		s=*src>>VOLFRACBITS;
 		if(s>32767)
@@ -74,7 +74,7 @@ void Mixer::MakeOutput(u16 *dest,u32 todo)
 		else if(s<-32768)
 			*dest=-32768;
 		else
-			*dest=u16(s);
+			*dest=uint16_t(s);
 		src++;
 		dest++;
 	}
@@ -84,27 +84,27 @@ void Mixer::MakeOutput(u16 *dest,u32 todo)
 //
 //	Converts the fraction 'dividend/divisor' into a fixed point longword.
 //
-int MakeFixed(u32 dividend,u16 divisor);
-inline int MakeFixed(u32 dividend,u16 divisor)
+int MakeFixed(uint32_t dividend,uint16_t divisor);
+inline int MakeFixed(uint32_t dividend,uint16_t divisor)
 {
 	//PROFILE();
 					
-	u32 whole,part;
+	uint32_t whole,part;
 
 	whole=dividend/divisor;
 	part=((dividend%divisor)<<Mixer::FREQFRACBITS)/divisor;
-	//CZLOG("WHOLE %u PART %u = %d\n", whole, part, u32((whole<<FREQFRACBITS)|part));
+	//CZLOG("WHOLE %u PART %u = %d\n", whole, part, uint32_t((whole<<FREQFRACBITS)|part));
 
-	u32 res = (whole<<Mixer::FREQFRACBITS)|part;
+	uint32_t res = (whole<<Mixer::FREQFRACBITS)|part;
 
 	res -= res>>31;
 
 	return res;
 }
 
-int MakeSignedFixed(s32 dividend, s16 divisor)
+int MakeSignedFixed(int32_t dividend, int16_t divisor)
 {
-	s32 whole,part, res;
+	int32_t whole,part, res;
 
 	if ((dividend<0 && divisor>0) || (dividend>0 && divisor<0) )
 	{
@@ -130,53 +130,53 @@ int MakeSignedFixed(s32 dividend, s16 divisor)
 //*-*-*-*-*-*-*-*-*-*-*-NON INTERPOLATED MIXING *-*-*-*-*-*-*-*-*-*-*-
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 
-u32 Mix8_Mono_To_Mono_Normal(
-		s32 *dest,
+uint32_t Mix8_Mono_To_Mono_Normal(
+		int32_t *dest,
 		void *src,
-		s32 pos,
-		s32 inc,
+		int32_t pos,
+		int32_t inc,
 		VOLUME_STATE *volstate,
-		s32 portion)
+		int32_t portion)
 {
 	//PROFILE();
             
 	int remain = portion & 0x07;
 	int runs = portion >> 3;
 
-	s32 lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
+	int32_t lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
 
-//    s16 tmpvol = lvol >> 6;
+//    int16_t tmpvol = lvol >> 6;
    
     while(runs--){
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
 		pos+=inc;
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
 		pos+=inc;
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
 		pos+=inc;
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
 		pos+=inc;
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
 		pos+=inc;
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
 		pos+=inc;
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
 		pos+=inc;
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
 		pos+=inc;		
 	}
 
 
 	while(remain--){
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
 		pos+=inc;
 	}
@@ -188,53 +188,53 @@ u32 Mix8_Mono_To_Mono_Normal(
 //
 //  8 BITS MONO TO STEREO
 //
-u32 Mix8_Mono_To_Stereo_Normal(
-		s32 *dest,
+uint32_t Mix8_Mono_To_Stereo_Normal(
+		int32_t *dest,
 		void *src,
-		s32 pos,
-		s32 inc,
+		int32_t pos,
+		int32_t inc,
 		VOLUME_STATE *volstate,
-		s32 portion)
+		int32_t portion)
 {
 
 	//PROFILE();
 
-//    s16 tmpvoll = lvol >> 6; 
-//    s16 tmpvolr = rvol >> 6; 
+//    int16_t tmpvoll = lvol >> 6; 
+//    int16_t tmpvolr = rvol >> 6; 
     
 
 	int remain = portion & 0x03;
 	int runs = portion >> 2;
-	s32 lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
-	s32 rvol = (volstate->currRvol>>Mixer::FREQFRACBITS)*256;
+	int32_t lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
+	int32_t rvol = (volstate->currRvol>>Mixer::FREQFRACBITS)*256;
 	
 	while(runs--){
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
-		*dest += rvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += rvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;		
 		pos+=inc;
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
-		*dest += rvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += rvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;		
 		pos+=inc;
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
-		*dest += rvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += rvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;		
 		pos+=inc;
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
-		*dest += rvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += rvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;		
 		pos+=inc;		
 	}
 	
 	while (remain--){
-		*dest += lvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += lvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
-		*dest += rvol * ((s8 *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest += rvol * ((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;		
 		pos+=inc;		
 	}
@@ -245,26 +245,26 @@ u32 Mix8_Mono_To_Stereo_Normal(
 //  8 BITS STEREO TO MONO
 //
 // TODO : This was hacked to implement ogg vorbis streaming, since I didn't had support for stere sounds
-u32 Mix8_Stereo_To_Mono_Normal(
-								   s32 *dest,
+uint32_t Mix8_Stereo_To_Mono_Normal(
+								   int32_t *dest,
 								   void *src,
-								   s32 pos,
-								   s32 inc,
+								   int32_t pos,
+								   int32_t inc,
 								   VOLUME_STATE *volstate,
-								   s32 portion)
+								   int32_t portion)
 {
 
 	//PROFILE();
 
-	//    s32 tmpvoll = lvol >> 6; 
-	//    s32 tmpvolr = rvol >> 6; 
+	//    int32_t tmpvoll = lvol >> 6; 
+	//    int32_t tmpvolr = rvol >> 6; 
 
-	s32 lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
+	int32_t lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
 
-	s32 l,r;
+	int32_t l,r;
 	while(portion--){
-		l = (s32)((s8 *)src)[(pos>>Mixer::FREQFRACBITS)<<1];
-		r = (s32)((s8 *)src)[((pos>>Mixer::FREQFRACBITS)<<1) +1];
+		l = (int32_t)((int8_t *)src)[(pos>>Mixer::FREQFRACBITS)<<1];
+		r = (int32_t)((int8_t *)src)[((pos>>Mixer::FREQFRACBITS)<<1) +1];
 		*dest+= lvol * ((l+r)>>1); // Addleft and right, and divide by 2
 		dest++;
 		pos+=inc;
@@ -276,27 +276,27 @@ u32 Mix8_Stereo_To_Mono_Normal(
 //  8 BITS STEREO TO STEREO
 //
 // TODO : This was hacked to implement ogg vorbis streaming, since I didn't had support for stereo sounds
-u32 Mix8_Stereo_To_Stereo_Normal(
-									  s32 *dest,
+uint32_t Mix8_Stereo_To_Stereo_Normal(
+									  int32_t *dest,
 									  void *src,
-									  s32 pos,
-									  s32 inc,
+									  int32_t pos,
+									  int32_t inc,
 									  VOLUME_STATE *volstate,
-									  s32 portion)
+									  int32_t portion)
 {
 
 	//PROFILE();
 
-	//    s32 tmpvoll = lvol >> 6; 
-	//    s32 tmpvolr = rvol >> 6; 
+	//    int32_t tmpvoll = lvol >> 6; 
+	//    int32_t tmpvolr = rvol >> 6; 
 
-	s32 lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
-	s32 rvol = (volstate->currRvol>>Mixer::FREQFRACBITS)*256;
+	int32_t lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
+	int32_t rvol = (volstate->currRvol>>Mixer::FREQFRACBITS)*256;
 
 	while(portion--){
-		*dest+= lvol * (s32)((s8 *)src)[(pos>>Mixer::FREQFRACBITS)<<1];
+		*dest+= lvol * (int32_t)((int8_t *)src)[(pos>>Mixer::FREQFRACBITS)<<1];
 		dest++;
-		*dest+= rvol * (s32)((s8 *)src)[((pos>>Mixer::FREQFRACBITS)<<1) +1];
+		*dest+= rvol * (int32_t)((int8_t *)src)[((pos>>Mixer::FREQFRACBITS)<<1) +1];
 		dest++;
 		pos+=inc;
 	}
@@ -308,22 +308,22 @@ u32 Mix8_Stereo_To_Stereo_Normal(
 //
 //  16 BITS MONO TO MONO
 //
-u32 Mix16_Mono_To_Mono_Normal(
-		s32 *dest,
+uint32_t Mix16_Mono_To_Mono_Normal(
+		int32_t *dest,
 		void *src,
-		s32 pos,
-		s32 inc,
+		int32_t pos,
+		int32_t inc,
 		VOLUME_STATE *volstate,
-		s32 portion)
+		int32_t portion)
 {
 
 	//PROFILE();
 
 //    int tmpvol = lvol >> 6;
-	s32 lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
+	int32_t lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
 
 	while(portion--){
-		*dest+= lvol * (s32)((short *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest+= lvol * (int32_t)((short *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
 		pos+=inc;
 		}
@@ -332,27 +332,27 @@ u32 Mix16_Mono_To_Mono_Normal(
 //
 //  16 BITS MONO TO STEREO
 //
-u32 Mix16_Mono_To_Stereo_Normal(
-		s32 *dest,
+uint32_t Mix16_Mono_To_Stereo_Normal(
+		int32_t *dest,
 		void *src,
-		s32 pos,
-		s32 inc,
+		int32_t pos,
+		int32_t inc,
 		VOLUME_STATE *volstate,
-		s32 portion)
+		int32_t portion)
 {
 
 	//PROFILE();
 
-//    s32 tmpvoll = lvol >> 6; 
-//    s32 tmpvolr = rvol >> 6; 
+//    int32_t tmpvoll = lvol >> 6; 
+//    int32_t tmpvolr = rvol >> 6; 
 
-	s32 lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
-	s32 rvol = volstate->currRvol>>Mixer::FREQFRACBITS;
+	int32_t lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
+	int32_t rvol = volstate->currRvol>>Mixer::FREQFRACBITS;
 
 	while(portion--){
-		*dest+= lvol * (s32)((short *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest+= lvol * (int32_t)((short *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
-		*dest+= rvol * (s32)((short *)src)[pos>>Mixer::FREQFRACBITS];
+		*dest+= rvol * (int32_t)((short *)src)[pos>>Mixer::FREQFRACBITS];
 		dest++;
 		pos+=inc;
 		}
@@ -362,25 +362,25 @@ u32 Mix16_Mono_To_Stereo_Normal(
 //  16 BITS STEREO TO MONO
 //
 // TODO : This was hacked to implement ogg vorbis streaming, since I didn't had support for stere sounds
-u32 Mix16_Stereo_To_Mono_Normal(
-									  s32 *dest,
+uint32_t Mix16_Stereo_To_Mono_Normal(
+									  int32_t *dest,
 									  void *src,
-									  s32 pos,
-									  s32 inc,
+									  int32_t pos,
+									  int32_t inc,
 									  VOLUME_STATE *volstate,
-									  s32 portion)
+									  int32_t portion)
 {
 
 	//PROFILE();
 
-	//    s32 tmpvoll = lvol >> 6; 
-	//    s32 tmpvolr = rvol >> 6; 
+	//    int32_t tmpvoll = lvol >> 6; 
+	//    int32_t tmpvolr = rvol >> 6; 
 
-	s32 lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
-	s32 l,r;
+	int32_t lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
+	int32_t l,r;
 	while(portion--){
-		l = (s32)((short *)src)[(pos>>Mixer::FREQFRACBITS)<<1];
-		r = (s32)((short *)src)[((pos>>Mixer::FREQFRACBITS)<<1) +1];
+		l = (int32_t)((short *)src)[(pos>>Mixer::FREQFRACBITS)<<1];
+		r = (int32_t)((short *)src)[((pos>>Mixer::FREQFRACBITS)<<1) +1];
 		*dest+= lvol * ((l+r)>>1); // Addleft and right, and divide by 2
 		dest++;
 		pos+=inc;
@@ -393,27 +393,27 @@ u32 Mix16_Stereo_To_Mono_Normal(
 //  16 BITS STEREO TO STEREO
 //
 // TODO : This was hacked to implement ogg vorbis streaming, since I didn't had support for stere sounds
-u32 Mix16_Stereo_To_Stereo_Normal(
-									  s32 *dest,
+uint32_t Mix16_Stereo_To_Stereo_Normal(
+									  int32_t *dest,
 									  void *src,
-									  s32 pos,
-									  s32 inc,
+									  int32_t pos,
+									  int32_t inc,
 									  VOLUME_STATE *volstate,
-									  s32 portion)
+									  int32_t portion)
 {
 
 	//PROFILE();
 
-	//    s32 tmpvoll = lvol >> 6; 
-	//    s32 tmpvolr = rvol >> 6; 
+	//    int32_t tmpvoll = lvol >> 6; 
+	//    int32_t tmpvolr = rvol >> 6; 
 
-	s32 lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
-	s32 rvol = volstate->currRvol>>Mixer::FREQFRACBITS;
+	int32_t lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
+	int32_t rvol = volstate->currRvol>>Mixer::FREQFRACBITS;
 
 	while(portion--){
-		*dest+= lvol * (s32)((short *)src)[(pos>>Mixer::FREQFRACBITS)<<1];
+		*dest+= lvol * (int32_t)((short *)src)[(pos>>Mixer::FREQFRACBITS)<<1];
 		dest++;
-		*dest+= rvol * (s32)((short *)src)[((pos>>Mixer::FREQFRACBITS)<<1) +1];
+		*dest+= rvol * (int32_t)((short *)src)[((pos>>Mixer::FREQFRACBITS)<<1) +1];
 		dest++;
 		pos+=inc;
 	}
@@ -424,22 +424,22 @@ u32 Mix16_Stereo_To_Stereo_Normal(
 //*-*-*-*-*-*-*-*-*-*-*-LINEAR INTERPOLATION MIXING *-*-*-*-*-*-*-*-
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 
-u32 Mix8_Mono_To_Mono_Linear(
-		s32 *dest,
+uint32_t Mix8_Mono_To_Mono_Linear(
+		int32_t *dest,
 		void *src,
-		s32 pos,
-		s32 inc,
+		int32_t pos,
+		int32_t inc,
 		VOLUME_STATE *volstate,
-		s32 portion)
+		int32_t portion)
 {
 	//PROFILE();
-	s32 s,a,b;
-	s32 lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
+	int32_t s,a,b;
+	int32_t lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
 
 	while(portion--){
-		a=((s8 *)src)[pos>>Mixer::FREQFRACBITS];
-		b=((s8 *)src)[1+(pos>>Mixer::FREQFRACBITS)];
-		s=a+(((s32)(b-a)*(s32)(pos&Mixer::FREQFRACMASK))>>Mixer::FREQFRACBITS);
+		a=((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
+		b=((int8_t *)src)[1+(pos>>Mixer::FREQFRACBITS)];
+		s=a+(((int32_t)(b-a)*(int32_t)(pos&Mixer::FREQFRACMASK))>>Mixer::FREQFRACBITS);
 		
 		if (volstate->volrampcount)
 		{
@@ -461,23 +461,23 @@ u32 Mix8_Mono_To_Mono_Linear(
 //
 //  8 BITS MONO TO STEREO
 //
-u32 Mix8_Mono_To_Stereo_Linear(
-		s32 *dest,
+uint32_t Mix8_Mono_To_Stereo_Linear(
+		int32_t *dest,
 		void *src,
-		s32 pos,
-		s32 inc,
+		int32_t pos,
+		int32_t inc,
 		VOLUME_STATE *volstate,
-		s32 portion)
+		int32_t portion)
 {
 
-	s32 s,a,b;	
-	s32 lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
-	s32 rvol = (volstate->currRvol>>Mixer::FREQFRACBITS)*256;
+	int32_t s,a,b;	
+	int32_t lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
+	int32_t rvol = (volstate->currRvol>>Mixer::FREQFRACBITS)*256;
 
 	while(portion--){
-		a=(int)((s8 *)src)[pos>>Mixer::FREQFRACBITS];
-		b=(int)((s8 *)src)[1+(pos>>Mixer::FREQFRACBITS)];
-		s=a+(((s32)(b-a)*(s32)(pos&Mixer::FREQFRACMASK))>>Mixer::FREQFRACBITS);
+		a=(int)((int8_t *)src)[pos>>Mixer::FREQFRACBITS];
+		b=(int)((int8_t *)src)[1+(pos>>Mixer::FREQFRACBITS)];
+		s=a+(((int32_t)(b-a)*(int32_t)(pos&Mixer::FREQFRACMASK))>>Mixer::FREQFRACBITS);
 
 		if (volstate->volrampcount)
 		{
@@ -504,24 +504,24 @@ u32 Mix8_Mono_To_Stereo_Linear(
 //
 //  8 BITS STEREO TO Mono
 //
-u32 Mix8_Stereo_To_Mono_Linear(
-									s32 *dest,
+uint32_t Mix8_Stereo_To_Mono_Linear(
+									int32_t *dest,
 									void *src,
-									s32 pos,
-									s32 inc,
+									int32_t pos,
+									int32_t inc,
 									VOLUME_STATE *volstate,
-									s32 portion)
+									int32_t portion)
 {
 	//PROFILE();
-	s32 s,a,b;
-	s32 lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
+	int32_t s,a,b;
+	int32_t lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
 
-	s8 *p;
+	int8_t *p;
 	while(portion--){
-		p = &((s8 *)src)[(pos>>Mixer::FREQFRACBITS)<<1];
-		a = ((s32)p[0] + (s32)p[1]) >> 1; // Mix left and right
-		b = ((s32)p[2] + (s32)p[3]) >> 1; // Mix left and right
-		s=a+(((s32)(b-a)*(s32)(pos&Mixer::FREQFRACMASK))>>Mixer::FREQFRACBITS);
+		p = &((int8_t *)src)[(pos>>Mixer::FREQFRACBITS)<<1];
+		a = ((int32_t)p[0] + (int32_t)p[1]) >> 1; // Mix left and right
+		b = ((int32_t)p[2] + (int32_t)p[3]) >> 1; // Mix left and right
+		s=a+(((int32_t)(b-a)*(int32_t)(pos&Mixer::FREQFRACMASK))>>Mixer::FREQFRACBITS);
 
 		if (volstate->volrampcount)
 		{
@@ -544,24 +544,24 @@ u32 Mix8_Stereo_To_Mono_Linear(
 //
 //  8 BITS STEREO TO STEREO
 //
-u32 Mix8_Stereo_To_Stereo_Linear(
-									 s32 *dest,
+uint32_t Mix8_Stereo_To_Stereo_Linear(
+									 int32_t *dest,
 									 void *src,
-									 s32 pos,
-									 s32 inc,
+									 int32_t pos,
+									 int32_t inc,
 									 VOLUME_STATE *volstate,
-									 s32 portion)
+									 int32_t portion)
 {
 	//PROFILE();
-	s32 s1,s2,a,b;
+	int32_t s1,s2,a,b;
 
-	s32 lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
-	s32 rvol = (volstate->currRvol>>Mixer::FREQFRACBITS)*256;
-	s32 c;
-	s8* p;
+	int32_t lvol = (volstate->currLvol>>Mixer::FREQFRACBITS)*256;
+	int32_t rvol = (volstate->currRvol>>Mixer::FREQFRACBITS)*256;
+	int32_t c;
+	int8_t* p;
 	while(portion--){
-		p = &(((s8 *)src)[(pos>>Mixer::FREQFRACBITS)<<1]);
-		c = (s32)(pos&Mixer::FREQFRACMASK);
+		p = &(((int8_t *)src)[(pos>>Mixer::FREQFRACBITS)<<1]);
+		c = (int32_t)(pos&Mixer::FREQFRACMASK);
 		a= *p;
 		b= *(p+2);
 		s1=a+(((b-a)*c)>>Mixer::FREQFRACBITS);
@@ -593,24 +593,24 @@ u32 Mix8_Stereo_To_Stereo_Linear(
 //
 //  16 BITS MONO TO MONO
 //
-u32 Mix16_Mono_To_Mono_Linear(
-								  s32 *dest,
+uint32_t Mix16_Mono_To_Mono_Linear(
+								  int32_t *dest,
 								  void *src,
-								  s32 pos,
-								  s32 inc,
+								  int32_t pos,
+								  int32_t inc,
 								  VOLUME_STATE *volstate,
-								  s32 portion)
+								  int32_t portion)
 {
 
 	//PROFILE();
-	s32 s,a,b;
+	int32_t s,a,b;
 
-	s32 lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
+	int32_t lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
 
 	while(portion--){
-		a=((s16 *)src)[pos>>Mixer::FREQFRACBITS];
-		b=((s16 *)src)[1+(pos>>Mixer::FREQFRACBITS)];
-		s=a+(((s32)(b-a)*(s32)(pos&Mixer::FREQFRACMASK))>>Mixer::FREQFRACBITS);
+		a=((int16_t *)src)[pos>>Mixer::FREQFRACBITS];
+		b=((int16_t *)src)[1+(pos>>Mixer::FREQFRACBITS)];
+		s=a+(((int32_t)(b-a)*(int32_t)(pos&Mixer::FREQFRACMASK))>>Mixer::FREQFRACBITS);
 
 		if (volstate->volrampcount)
 		{
@@ -632,25 +632,25 @@ u32 Mix16_Mono_To_Mono_Linear(
 //
 //  16 BITS MONO TO STEREO
 //
-u32 Mix16_Mono_To_Stereo_Linear(
-									s32 *dest,
+uint32_t Mix16_Mono_To_Stereo_Linear(
+									int32_t *dest,
 									void *src,
-									s32 pos,
-									s32 inc,
+									int32_t pos,
+									int32_t inc,
 									VOLUME_STATE *volstate,
-									s32 portion)
+									int32_t portion)
 {
 
 	//PROFILE();
-	s32 s,a,b;
+	int32_t s,a,b;
 
-	s32 lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
-	s32 rvol = volstate->currRvol>>Mixer::FREQFRACBITS;
+	int32_t lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
+	int32_t rvol = volstate->currRvol>>Mixer::FREQFRACBITS;
 
 	while(portion--){
-		a=((s16 *)src)[pos>>Mixer::FREQFRACBITS];
-		b=((s16 *)src)[1+(pos>>Mixer::FREQFRACBITS)];
-		s=a+(((s32)(b-a)*(s32)(pos&Mixer::FREQFRACMASK))>>Mixer::FREQFRACBITS);
+		a=((int16_t *)src)[pos>>Mixer::FREQFRACBITS];
+		b=((int16_t *)src)[1+(pos>>Mixer::FREQFRACBITS)];
+		s=a+(((int32_t)(b-a)*(int32_t)(pos&Mixer::FREQFRACMASK))>>Mixer::FREQFRACBITS);
 
 		if (volstate->volrampcount)
 		{
@@ -679,24 +679,24 @@ u32 Mix16_Mono_To_Stereo_Linear(
 //
 //  16 BITS STEREO TO Mono
 //
-u32 Mix16_Stereo_To_Mono_Linear(
-									s32 *dest,
+uint32_t Mix16_Stereo_To_Mono_Linear(
+									int32_t *dest,
 									void *src,
-									s32 pos,
-									s32 inc,
+									int32_t pos,
+									int32_t inc,
 									VOLUME_STATE *volstate,
-									s32 portion)
+									int32_t portion)
 {
 	//PROFILE();
-	s32 s,a,b;
-	s32 lvol = (volstate->currLvol>>Mixer::FREQFRACBITS);
+	int32_t s,a,b;
+	int32_t lvol = (volstate->currLvol>>Mixer::FREQFRACBITS);
 
-	s16 *p;
+	int16_t *p;
 	while(portion--){
-		p = &((s16 *)src)[(pos>>Mixer::FREQFRACBITS)<<1];
-		a = ((s32)p[0] + (s32)p[1]) >> 1; // Mix left and right
-		b = ((s32)p[2] + (s32)p[3]) >> 1; // Mix left and right
-		s=a+(((s32)(b-a)*(s32)(pos&Mixer::FREQFRACMASK))>>Mixer::FREQFRACBITS);
+		p = &((int16_t *)src)[(pos>>Mixer::FREQFRACBITS)<<1];
+		a = ((int32_t)p[0] + (int32_t)p[1]) >> 1; // Mix left and right
+		b = ((int32_t)p[2] + (int32_t)p[3]) >> 1; // Mix left and right
+		s=a+(((int32_t)(b-a)*(int32_t)(pos&Mixer::FREQFRACMASK))>>Mixer::FREQFRACBITS);
 
 		if (volstate->volrampcount)
 		{
@@ -720,24 +720,24 @@ u32 Mix16_Stereo_To_Mono_Linear(
 //
 //  16 BITS STEREO TO STEREO
 //
-u32 Mix16_Stereo_To_Stereo_Linear(
-									  s32 *dest,
+uint32_t Mix16_Stereo_To_Stereo_Linear(
+									  int32_t *dest,
 									  void *src,
-									  s32 pos,
-									  s32 inc,
+									  int32_t pos,
+									  int32_t inc,
 									  VOLUME_STATE *volstate,
-									  s32 portion)
+									  int32_t portion)
 {
 	//PROFILE();
-	s32 s1,s2,a,b;
+	int32_t s1,s2,a,b;
 
-	s32 lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
-	s32 rvol = volstate->currRvol>>Mixer::FREQFRACBITS;
-	s32 c;
-	s16* p;
+	int32_t lvol = volstate->currLvol>>Mixer::FREQFRACBITS;
+	int32_t rvol = volstate->currRvol>>Mixer::FREQFRACBITS;
+	int32_t c;
+	int16_t* p;
 	while(portion--){
-		p = &(((s16 *)src)[(pos>>Mixer::FREQFRACBITS)<<1]);
-		c = (s32)(pos&Mixer::FREQFRACMASK);
+		p = &(((int16_t *)src)[(pos>>Mixer::FREQFRACBITS)<<1]);
+		c = (int32_t)(pos&Mixer::FREQFRACMASK);
 		a= *p;
 		b= *(p+2);
 		s1=a+(((b-a)*c)>>Mixer::FREQFRACBITS);
@@ -786,7 +786,7 @@ void Mixer::SetStopRamp(CHANNEL *chptr)
 }
 
 
-void Mixer::Mix_StopRamp(s32 *dest, STOPRAMP_STATE *stoprampstate, s32 portion)
+void Mixer::Mix_StopRamp(int32_t *dest, STOPRAMP_STATE *stoprampstate, int32_t portion)
 {
 	CZASSERT(QualityType>AUDIO_INTERPOLATION_NONE);
 
@@ -823,28 +823,28 @@ void Mixer::Mix_StopRamp(s32 *dest, STOPRAMP_STATE *stoprampstate, s32 portion)
 //-----------------------------------------------------------------
 //                   CONTROLS CHANNEL MIXING
 //-----------------------------------------------------------------
-void Mixer::MixChannel(CHANNEL *chptr,u32 len, s32 *mixbuff)
+void Mixer::MixChannel(CHANNEL *chptr,uint32_t len, int32_t *mixbuff)
 {
 	
 	PROFILE();
 
-	u32 lvol,rvol;
+	uint32_t lvol,rvol;
 	int inc=chptr->increment;
 	int incMODULE = inc;
 
 	int todo=len;
-	s32 *mxpos = mixbuff;
+	int32_t *mxpos = mixbuff;
 	int pos=chptr->pos;
 	int end = chptr->end;
 	int repeat=chptr->repeat;
 	int portion;
-	//u8 check=0;
+	//uint8_t check=0;
 
 	if(chptr->back) inc=-inc;
 
 	// Calculate left and right volume;
-	u32 cvol=(u16(chptr->vol)*u16(chptr->mastervol));	
-	u32 pan= chptr->panning;
+	uint32_t cvol=(uint16_t(chptr->vol)*uint16_t(chptr->mastervol));	
+	uint32_t pan= chptr->panning;
 	if(!IS_STEREO) pan=128;
 	if(pan==0){
 		lvol=cvol;
@@ -856,8 +856,8 @@ void Mixer::MixChannel(CHANNEL *chptr,u32 len, s32 *mixbuff)
 		rvol=cvol;
 		lvol=0;
 	} else{	
-		u32 tmp=(u32(cvol)*u32(pan))/256;
-		rvol=(u16)tmp;
+		uint32_t tmp=(uint32_t(cvol)*uint32_t(pan))/256;
+		rvol=(uint16_t)tmp;
 		lvol=cvol-rvol;	
 	}
 
@@ -866,8 +866,8 @@ void Mixer::MixChannel(CHANNEL *chptr,u32 len, s32 *mixbuff)
 	//
 	if (volumeRampingNumFrames!=0 && QualityType>AUDIO_INTERPOLATION_NONE)
 	{
-		s32 lvolFixed = lvol << FREQFRACBITS;
-		s32 rvolFixed = rvol << FREQFRACBITS;
+		int32_t lvolFixed = lvol << FREQFRACBITS;
+		int32_t rvolFixed = rvol << FREQFRACBITS;
 		if (chptr->volState.restart) // restart ramping if necessary
 		{
 			chptr->volState.restart = false;
@@ -1110,8 +1110,8 @@ You MUST call this member function before using the object.
 All the other member functions assume this as been called, and so no check 
 is made.
 */
-int Mixer::Init(u32 numberofchannels, u32 mixsize,
-		bool stereo, bool is16bits, u16 freq)
+int Mixer::Init(uint32_t numberofchannels, uint32_t mixsize,
+		bool stereo, bool is16bits, uint16_t freq)
 {
 	PROFILE();
 	
@@ -1129,7 +1129,7 @@ int Mixer::Init(u32 numberofchannels, u32 mixsize,
 	if(channels!=NULL) CZFREE(channels);
 
 	// allocate mixing buffer only if 8 bits output is used
-	m_mixblock = (s32*) CZALLOC(sizeof(s32)*mixsize*samplesize);
+	m_mixblock = (int32_t*) CZALLOC(sizeof(int32_t)*mixsize*samplesize);
 	if (m_mixblock==NULL) CZERROR(ERR_NOMEM);
 	int length=sizeof(m_mixblock[0])*mixsize*samplesize;
 	memset(m_mixblock,0,length);
@@ -1257,7 +1257,7 @@ Invalid \c len (greater than the one passed in Init() )
 \sa Init(), SetQualityType()
 */
 
-int Mixer::MixPortion(void *dest, u32 len)
+int Mixer::MixPortion(void *dest, uint32_t len)
 {
 	
 	PROFILE();
@@ -1300,9 +1300,9 @@ CHANNEL *chptr=&channels[0];
 	int todo=len;
 	if(IS_STEREO) todo*=2;
 	if(IS_16BITS){
-		MakeOutput((u16 *)dest,todo);
+		MakeOutput((uint16_t *)dest,todo);
 	} else {
-		MakeOutput((u8 *)dest,todo);
+		MakeOutput((uint8_t *)dest,todo);
 	}
     
 
@@ -1357,9 +1357,9 @@ SetVoiceStatus(), ::LOOPMODE.
 Returns \c JOK if no error, or an error received by any other member 
 function it calls.
 */
-int Mixer::SetVoice(u32 ch, StaticSound *sound,
-			 u32 current, u32 end, u32 repeat,
-			 u32 freq, u8 vol, u8 pan, int loopmode)
+int Mixer::SetVoice(uint32_t ch, StaticSound *sound,
+			 uint32_t current, uint32_t end, uint32_t repeat,
+			 uint32_t freq, uint8_t vol, uint8_t pan, int loopmode)
 {
 	PROFILE();
 	
@@ -1373,7 +1373,7 @@ int Mixer::SetVoice(u32 ch, StaticSound *sound,
 }
 
 
-int Mixer::SetVoice(u32 ch, StreamSound *stream, u8 vol, bool loop)
+int Mixer::SetVoice(uint32_t ch, StreamSound *stream, uint8_t vol, bool loop)
 {
 	PROFILE();
 
@@ -1409,7 +1409,7 @@ An invalid parameter was passed.
 
 \sa Init(), SetVoice(), SetVoiceStatus(),::LOOPMODE
 */
-int Mixer::SetSample(int ch, StaticSound *sound,u32 current, u32 end, u32 repeat,  int loopmode)
+int Mixer::SetSample(int ch, StaticSound *sound,uint32_t current, uint32_t end, uint32_t repeat,  int loopmode)
 {
 	PROFILE();
 	
@@ -1420,7 +1420,7 @@ int Mixer::SetSample(int ch, StaticSound *sound,u32 current, u32 end, u32 repeat
 	CHANNEL *chptr=&channels[ch];
 
 	// save oldstate
-	u8 oldstate=chptr->on;
+	uint8_t oldstate=chptr->on;
 	chptr->on=0; // set to disable
 	
 	chptr->back=0;
@@ -1474,7 +1474,7 @@ An invalid parameter was passed.
  
 \sa Init(), SetVoice(), SetSample(), SetVoiceStatus()
 */
-int Mixer::SetPosition(int ch, u32 current)
+int Mixer::SetPosition(int ch, uint32_t current)
 {
 	PROFILE();
 	
@@ -1512,7 +1512,7 @@ An invalid parameter was passed.
 
 \sa Init(), SetVoice(), SetSample(), SetVoiceStatus(), ::LOOPMODE
 */
-int Mixer::SetLoop(u8 ch, u32 loopbeg, u32 loopend, int loopmode)
+int Mixer::SetLoop(uint8_t ch, uint32_t loopbeg, uint32_t loopend, int loopmode)
 {
 	PROFILE();
 
@@ -1522,7 +1522,7 @@ int Mixer::SetLoop(u8 ch, u32 loopbeg, u32 loopend, int loopmode)
 
 	CHANNEL *chptr=&channels[ch];
 
-	u8 oldstate=chptr->on;
+	uint8_t oldstate=chptr->on;
 	chptr->on=0;
 	
 	chptr->repeat=loopbeg<<FREQFRACBITS;
@@ -1552,7 +1552,7 @@ An invalid parameter was passed.
 
 \sa Init(), SetVoice(), SetSample(), SetVoiceStatus()
 */
-int Mixer::SetFrequency(int ch, u32 freq)
+int Mixer::SetFrequency(int ch, uint32_t freq)
 {
 	PROFILE();
 	
@@ -1562,12 +1562,12 @@ int Mixer::SetFrequency(int ch, u32 freq)
 
 	CHANNEL *chptr=&channels[ch];
 
-	u8 oldstate=chptr->on;
+	uint8_t oldstate=chptr->on;
 	chptr->on=0;
 	
 	chptr->freq=freq;
 	
-	chptr->increment=MakeFixed(freq,u16(FREQUENCY));
+	chptr->increment=MakeFixed(freq,uint16_t(FREQUENCY));
 
 	chptr->on=oldstate;
 	return ERR_OK;
@@ -1589,7 +1589,7 @@ An invalid parameter was passed.
 
 \sa Init(), SetVoice(), SetVoiceStatus()
 */
-int Mixer::SetVolume(int ch, u8 vol)
+int Mixer::SetVolume(int ch, uint8_t vol)
 {
 	PROFILE();	
 	
@@ -1617,7 +1617,7 @@ An invalid parameter was passed.
 
 \sa Init(), SetVoice(), SetVoiceStatus()
 */
-int Mixer::SetPanning(int ch, u8 pan)
+int Mixer::SetPanning(int ch, uint8_t pan)
 {
 	PROFILE();
 	
@@ -1655,7 +1655,7 @@ int Mixer::SetVoiceStatus(int ch, int on)
 	if(ch>=nch) CZERROR(ERR_INVPAR);
 #endif
 
-	u8 oldstate = channels[ch].on;
+	uint8_t oldstate = channels[ch].on;
 	channels[ch].on=((on)&&(channels[ch].snd!=NULL))? 1: 0;
 
 	if (channels[ch].on && oldstate==0)
@@ -1679,7 +1679,7 @@ int Mixer::SetMixingListener(int ch, ChannelMixingListener* listener)
 }
 
 
-void Mixer::SetMasterVolume(u8 v)
+void Mixer::SetMasterVolume(uint8_t v)
 {
 	PROFILE();
 	
@@ -1714,7 +1714,7 @@ An invalid parameter was passed.
 
 \sa Init(), SetVoice(), SetVoiceStatus()
 */
-int Mixer::SetMasterVolume(u8 v,u32 firstchannel,u32 howmany)
+int Mixer::SetMasterVolume(uint8_t v,uint32_t firstchannel,uint32_t howmany)
 {
 	PROFILE();
 	
@@ -1723,7 +1723,7 @@ int Mixer::SetMasterVolume(u8 v,u32 firstchannel,u32 howmany)
 #endif
 
 
-	u8 temp = u8(v);
+	uint8_t temp = uint8_t(v);
 
 	temp=MIN(64,temp);
 	CHANNEL *chptr=&channels[firstchannel];
@@ -1868,25 +1868,25 @@ int Mixer::GetFrameSizeBytes(void)
 }
 
 
-u32 Mixer::GetChannelTag(int ch)
+uint32_t Mixer::GetChannelTag(int ch)
 {
 		return channels[ch].tag;
 }
 
-void Mixer::SetChannelTag(int ch, u32 tag)
+void Mixer::SetChannelTag(int ch, uint32_t tag)
 {
 	channels[ch].tag = tag;
 }
 	
-u32 Mixer::GetMaxOutputBufferSizeBytes()
+uint32_t Mixer::GetMaxOutputBufferSizeBytes()
 {
-	u32 bytes = samples;
+	uint32_t bytes = samples;
 	if (IS_STEREO) bytes *=2;
 	if (IS_STEREO) bytes *=2;
 	return bytes;
 }
 
-u32 Mixer::GetMaxOutputBufferSizeFrames()
+uint32_t Mixer::GetMaxOutputBufferSizeFrames()
 {
 	return samples;	
 }
@@ -2125,17 +2125,17 @@ int Mixer::GetVoiceValue(int ch)
 	if(!chptr->on) return 0;
 	StaticSound *snd=chptr->snd;
 
-	u32 vol=(u32)chptr->mastervol*(u32)chptr->vol;
+	uint32_t vol=(uint32_t)chptr->mastervol*(uint32_t)chptr->vol;
 	void *ptr=snd->GetPtrToFrame(chptr->pos>>FREQFRACBITS);	
 	if(snd->Is16Bits()){
-		u16 s=*(u16 *)ptr+32768;
-		u32 value=((u32)s*vol) >> 16;
+		uint16_t s=*(uint16_t *)ptr+32768;
+		uint32_t value=((uint32_t)s*vol) >> 16;
 		return (value);
 		}
 		else
 		{
-		u8 s=*(u8 *)ptr+128;
-		u32 value=((u32)s*vol) >> 8;
+		uint8_t s=*(uint8_t *)ptr+128;
+		uint32_t value=((uint32_t)s*vol) >> 8;
 		return (value);
 		}
 }

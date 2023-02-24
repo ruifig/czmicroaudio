@@ -15,75 +15,39 @@
 
 #include "../czPlayerPrivateDefs.h"
 #include "../czSoundOutput.h"
-#include "czThread.h"
-#include "czMutex.h"
-#include "czConditionVariable.h"
+#include <memory>
 
 namespace cz
 {
 namespace audio
 {
 
-// forward declarations
-//class Win32WaveOutOutput;
-
-/*
-class Win32OutputWorkerThread : public ::cz::Thread
-{
-
-friend class Win32WaveOutOutput; // czWin32WaveOutOutput can access protected members
-
-public:
-	Win32OutputWorkerThread() : m_sndOut(NULL), m_isrunning(false) {};
-	virtual ~Win32OutputWorkerThread() {};
-protected:
-	Win32WaveOutOutput* m_sndOut;
-	volatile bool m_isrunning;
-	virtual void Run();
-};
-*/
+// Using Pimpl pattern do we don't need add Windows's Mmsystem.h to the global scope
+struct Win32WaveOutOutputImpl;
 
 class Win32WaveOutOutput : public SoundOutput
 {
 
 public:
+
 	Win32WaveOutOutput(::cz::Core *parentObject);
 	virtual ~Win32WaveOutOutput();
+	virtual int Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits16, int freq ) override;
+	virtual void PauseOutput(bool freeResources) override;
+	virtual void ResumeOutput(void) override;
 
-	virtual int Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits16, int freq );
-
-	virtual void PauseOutput(bool freeResources);
-	virtual void ResumeOutput(void);
-
-protected:
-	int writeBlock(void);
-
-	virtual void LockMixer();
-	virtual void UnlockMixer();
+	using SoundOutput::Init;
+	using SoundOutput::FeedData;
+	using SoundOutput::UpdateStatus;
+	using SoundOutput::InitSoftwareMixerOutput;
+	using Object::m_core;
 
 private:
+	virtual void LockMixer() override;
+	virtual void UnlockMixer() override;
 
-	HWAVEOUT m_hWaveOut; /* device handle */
-	
-	::cz::recursive_mutex m_waveOutMutex;
-	::cz::recursive_mutex m_mixerMutex;
-	::cz::condition_variable m_processCond;
-	volatile bool m_finish;
-	volatile u32 m_msgCounter;
-	::cz::thread m_workerThread;
-
-	WAVEHDR*         m_waveBlocks;
-	volatile int     m_waveFreeBlockCount;
-	int              m_waveCurrentBlock;
-	int m_numFramesInBlock;
-
-	static void RunWorkerThread(volatile bool &started, Win32WaveOutOutput* sndOut);
-
-	int m_waveBlockSize; // Block size in bytes
-
-	static void CALLBACK waveOutProc( HWAVEOUT hWaveOut, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2);
+	Win32WaveOutOutputImpl* m_impl = nullptr;
 };
-
 
 } // namespace audio
 } // namespace cz

@@ -120,24 +120,24 @@ public:
 	//void Log(const char *fmt, ...);
 	
 	//! Reads 1 Bytes from the file
-	u8 Read8(void)
+	uint8_t Read8(void)
 	{
-		u8 dumb;
+		uint8_t dumb;
 		ReadData(&dumb, sizeof(dumb));
 		return dumb;
 	}
 	//! Reads 2 Bytes from the file
-	u16 Read16(){
-		u16 dumb;
+	uint16_t Read16(){
+		uint16_t dumb;
 		ReadData(&dumb, sizeof(dumb));
 		if (m_swapBytes)
 			dumb = BByteSwap16(dumb);
 		return dumb;
 	}
 	//! Reads 4 Bytes from the file
-	u32 Read32()
+	uint32_t Read32()
 	{
-		u32 dumb;
+		uint32_t dumb;
 		ReadData(&dumb, sizeof(dumb));
 		if (m_swapBytes)
 			dumb = BByteSwap32(dumb);
@@ -145,32 +145,32 @@ public:
 	}
 
 	//! Reads an unsigned 8 bits integer from the file
-	u8 ReadUnsigned8(void)
+	uint8_t ReadUnsigned8(void)
 	{
 		return Read8();
 	}
 	//! Reads an unsigned 16 bits integer from the file
-	u16 ReadUnsigned16()
+	uint16_t ReadUnsigned16()
 	{
 		return Read16();
 	}
 	//! Reads an unsigned 32 bits integer from the file
-	u32 ReadUnsigned32()
+	uint32_t ReadUnsigned32()
 	{
 		return Read32();
 	}
 	//! Reads an signed 8 bits integer from the file
-	s8 ReadSigned8(void)
+	int8_t ReadSigned8(void)
 	{
 		return Read8();
 	}
 	//! Reads an signed 16 bits integer from the file
-	s16 ReadSigned16()
+	int16_t ReadSigned16()
 	{
 		return Read16();
 	}
 	//! Reads an signed 32 bits integer from the file
-	s32 ReadSigned32()
+	int32_t ReadSigned32()
 	{
 		return Read32();
 	}
@@ -192,19 +192,19 @@ protected:
 	
 protected:
 
-	static u16 BByteSwap16(u16 n)
+	static uint16_t BByteSwap16(uint16_t n)
 	{
-		return (  ((((u16) n) << 8) & 0xFF00) | 
-				  ((((u16) n) >> 8) & 0x00FF) );
+		return (  ((((uint16_t) n) << 8) & 0xFF00) | 
+				  ((((uint16_t) n) >> 8) & 0x00FF) );
 	}
 
 
-	static u32 BByteSwap32(u32 n)
+	static uint32_t BByteSwap32(uint32_t n)
 	{
-		return (  ((((u32) n) << 24) & 0xFF000000) |
-				  ((((u32) n) << 8) & 0x00FF0000)  |
-				  ((((u32) n) >> 8) & 0x0000FF00)  |
-				  ((((u32) n) >> 24) & 0x000000FF) );
+		return (  ((((uint32_t) n) << 24) & 0xFF000000) |
+				  ((((uint32_t) n) << 8) & 0x00FF0000)  |
+				  ((((uint32_t) n) >> 8) & 0x0000FF00)  |
+				  ((((uint32_t) n) >> 24) & 0x000000FF) );
 	}
 	
 	

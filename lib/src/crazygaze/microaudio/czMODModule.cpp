@@ -25,7 +25,7 @@ namespace audio
 
 // Default panning to use when loading a MOD.
 // I'm not sure about those values, but most players/tracker seem to define their own
-const u8 g_MOD_defaultPannings[32]={
+const uint8_t g_MOD_defaultPannings[32]={
 	32,96,96,32, 32,96,96,32, 32,96,96,32, 32,96,96,32,
 	32,96,96,32, 32,96,96,32, 32,96,96,32, 32,96,96,32};
 // Types supported
@@ -125,8 +125,8 @@ void MODModule::ResetMembers(void)
 	m_mixer = NULL;
 }
 
-inline u16 ReadBigEndianWord(::cz::io::File *in) {
-	return (u16) (((u16)in->ReadUnsigned8()<<8) + (u16)in->ReadUnsigned8());
+inline uint16_t ReadBigEndianWord(::cz::io::File *in) {
+	return (uint16_t) (((uint16_t)in->ReadUnsigned8()<<8) + (uint16_t)in->ReadUnsigned8());
 }
 
 
@@ -223,7 +223,7 @@ int MODModule::Init(::cz::io::File *in)
 
 	// Allocate memory for only one pattern to read from file
 	int filePatternSize = m_numChannels*4*64;
-	m_tempPatternData = (u8*) CZALLOC(sizeof(u8)*filePatternSize);
+	m_tempPatternData = (uint8_t*) CZALLOC(sizeof(uint8_t)*filePatternSize);
 	if (m_tempPatternData==NULL) CZERROR(ERR_NOMEM);
 
 	// Read one pattern at a time, and pack the pattern data to the new structure, take takes only 3 bytes per note.
@@ -231,19 +231,19 @@ int MODModule::Init(::cz::io::File *in)
 	{
 		in->ReadData(m_tempPatternData, filePatternSize);
 
-		u8 *ptr1 = m_tempPatternData;
+		uint8_t *ptr1 = m_tempPatternData;
 		MODPACKEDNOTE *ptr2 = &m_packedPatternData[m_numChannels*64*pat];
 		int i= m_numChannels*64;
 		while(i--){
 			int period;
-			u8 sample,effect, effectParam;
+			uint8_t sample,effect, effectParam;
 			sample = (ptr1[0] & 0xF0) + (ptr1[2]>>4);
 			effect = ptr1[2] & 0x0F;
 			effectParam = ptr1[3];
 			period = (int(ptr1[0] & 0x0F) << 8) + ptr1[1];
 
 			// Convert period to note (0..60) -Later, multiply by 8 to get the real index into the period table
-			u8 note = 127; // Default to 127 (all 7 bits on), so that we can detect later if there is a note
+			uint8_t note = 127; // Default to 127 (all 7 bits on), so that we can detect later if there is a note
 			if (period>0)
 			{
 				for (int n=1; n<=60; n++)
@@ -301,7 +301,7 @@ int MODModule::Init(::cz::io::File *in)
 			/*
 			czDiskFile out;
 			out.Open("sample.raw",0,CZFILE_WRITE);
-			out.WriteData((u8*)smp->snd->GetPtr()-SAFETYAREA, smp->length+(SAFETYAREA*2));
+			out.WriteData((uint8_t*)smp->snd->GetPtr()-SAFETYAREA, smp->length+(SAFETYAREA*2));
 			out.Close();
 			*/
 
@@ -322,7 +322,7 @@ int MODModule::Init(::cz::io::File *in)
 	return ERR_OK;
 }
 
-int MODModule::Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, u8 volume)
+int MODModule::Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, uint8_t volume)
 {
 	if ((!m_loaded)||(m_isPlaying)) CZERROR(ERR_CANTRUN);
 
@@ -395,7 +395,7 @@ int MODModule::Pause(void)
 	return ERR_OK;
 }
 
-int MODModule::SetMasterVolume(u8 vol){
+int MODModule::SetMasterVolume(uint8_t vol){
 	m_mixer->SetMasterVolume(vol, m_firstMixerChannel, m_numChannels);
 	return ERR_OK;
 }
@@ -415,7 +415,7 @@ void MODModule::DecodeRow(void)
 	for (int ch = 0; ch < m_numChannels; ch++){
 		MODNOTE *note = &m_tracks[ch].note;
 		// Read note, and convert to real index
-		note->periodIndex = ((s16)(ptr->b0 >>1));
+		note->periodIndex = ((int16_t)(ptr->b0 >>1));
 		note->periodIndex = (note->periodIndex==127) ? -1 : (note->periodIndex*8);
 		note->sample = ((ptr->b0 & 0x01)<<4) | ((ptr->b1 >> 4)&0x0F);
 		note->effect = ptr->b1 & 0x0F;
@@ -498,15 +498,15 @@ void MODModule::DoVibrato(MODTRACK *trk, bool vibratoAndVolSlide)
 	if (m_currentTick==0){
 		if (vibratoAndVolSlide==false) {
 			// Memorize parameters
-			u8 x = trk->note.effectParam >> 4;
-			u8 y = trk->note.effectParam & 0x0F;
+			uint8_t x = trk->note.effectParam >> 4;
+			uint8_t y = trk->note.effectParam & 0x0F;
 			if (x!=0) trk->vibratoSpeed = x;
 			if (y!=0) trk->vibratoDepth = y;
 		}
 	}
 
 	// delta = (depth*val) / 64
-	const s8 *table = m_core->MOD_waveFormsPtrs[trk->vibratoWaveform];
+	const int8_t *table = m_core->MOD_waveFormsPtrs[trk->vibratoWaveform];
 	int delta = ((int)trk->vibratoDepth * (int)table[trk->vibratoWavePos]) >> 6;
 	// Add or subtract around the current period
 	trk->periodToPlay = trk->currentPeriod + delta;
@@ -529,18 +529,18 @@ void MODModule::DoTremolo(MODTRACK *trk)
 			trk->tremoloWavePos = 0;
 		}
 		// Memorize parameters
-		u8 x = trk->note.effectParam >> 4;
-		u8 y = trk->note.effectParam & 0x0F;
+		uint8_t x = trk->note.effectParam >> 4;
+		uint8_t y = trk->note.effectParam & 0x0F;
 		if (x!=0) trk->tremoloSpeed = x;
 		if (y!=0) trk->tremoloDepth = y;
 	}
 
 
 	// delta = (depth*val) / 32
-	const s8 *table = m_core->MOD_waveFormsPtrs[trk->tremoloWaveform];
+	const int8_t *table = m_core->MOD_waveFormsPtrs[trk->tremoloWaveform];
 	int delta = ((int)trk->tremoloDepth * (int)table[trk->tremoloWavePos]) >> 5;
 	// Add or subtract around the current volume
-	trk->volumeToPlay = (u8) Clamp((int)trk->currentVolume + delta, (int)0, (int)64);
+	trk->volumeToPlay = (uint8_t) Clamp((int)trk->currentVolume + delta, (int)0, (int)64);
 
 	// Update wave position, and warp around if necessary
 	if (m_currentTick>0){
@@ -580,8 +580,8 @@ void MODModule::DoTonePortamento(MODTRACK *trk, bool tonePortamentoAndVolSlide)
 void MODModule::DoVolumeSlide(MODTRACK *trk)
 {
 	if (m_currentTick>0){
-		u8 x = trk->note.effectParam >> 4;
-		u8 y = trk->note.effectParam & 0x0F;
+		uint8_t x = trk->note.effectParam >> 4;
+		uint8_t y = trk->note.effectParam & 0x0F;
 		int tmpvol = trk->currentVolume;
 		// if both x and y are zero, then do nothing
 		if ((x>0)&&(y==0)){
@@ -589,7 +589,7 @@ void MODModule::DoVolumeSlide(MODTRACK *trk)
 		} else if ((y>0)&&(x==0)){
 			tmpvol -= y;
 		}
-		trk->currentVolume = (u8) Clamp(tmpvol, (int)0, (int)64);
+		trk->currentVolume = (uint8_t) Clamp(tmpvol, (int)0, (int)64);
 		trk->volumeToPlay = trk->currentVolume;
 	}
 }
@@ -625,13 +625,13 @@ void MODModule::ProcessFirstTickEffects(void)
 {
 	for (int ch=0; ch<m_numChannels; ch++){
 		MODTRACK *trk = &m_tracks[ch];
-		u8 effect = trk->note.effect;
-		u8 effectParam = trk->note.effectParam;
+		uint8_t effect = trk->note.effect;
+		uint8_t effectParam = trk->note.effectParam;
 		// skip processing if no effect
 		if ((effect==0)&&(effectParam==0)) continue;
 
-		u8 effectX = (effectParam&0xF0) >> 4;
-		u8 effectY = effectParam&0x0F;
+		uint8_t effectX = (effectParam&0xF0) >> 4;
+		uint8_t effectY = effectParam&0x0F;
 
 		switch (effect) {
 			case EfSetPanPosition : // 8xy
@@ -651,7 +651,7 @@ void MODModule::ProcessFirstTickEffects(void)
 				break;
 			case EfPatternBreak : // effect Dxy
 				{
-					u8 row = effectX*10 + effectY; // represented as decimal
+					uint8_t row = effectX*10 + effectY; // represented as decimal
 					m_patternBreakToRow = (row<=63) ? row : 0;
 				}
 			break;
@@ -689,7 +689,7 @@ void MODModule::ProcessFirstTickEffects(void)
 					break;
 					case EfExtSetFinetune : // E5y
 						if (trk->note.sample>0){
-							m_samples[trk->note.sample-1].fineTune = (effectY>7) ? (s8)effectY-16 : (s8)effectY;
+							m_samples[trk->note.sample-1].fineTune = (effectY>7) ? (int8_t)effectY-16 : (int8_t)effectY;
 						}
 					break;
 					case EfExtPatternLoop : // E6y
@@ -718,7 +718,7 @@ void MODModule::ProcessFirstTickEffects(void)
 						trk->volumeToPlay = trk->currentVolume;
 					break;
 					case EfExtFineVolSlideDown : // EBy
-						trk->currentVolume = (u8) Clamp((int)trk->currentVolume-(int)effectY, (int)0, (int)64);
+						trk->currentVolume = (uint8_t) Clamp((int)trk->currentVolume-(int)effectY, (int)0, (int)64);
 						trk->volumeToPlay = trk->currentVolume;
 					break;
 					case EfExtPatternDelay : // EEy
@@ -739,11 +739,11 @@ void MODModule::UpdateEffects(void)
 {
 	for (int ch=0; ch<m_numChannels; ch++){
 		MODTRACK *trk = &m_tracks[ch];
-		u8 effect = trk->note.effect;
-		u8 effectParam = trk->note.effectParam;
+		uint8_t effect = trk->note.effect;
+		uint8_t effectParam = trk->note.effectParam;
 
-		u8 effectX = (effectParam&0xF0) >> 4;
-		u8 effectY = effectParam&0x0F;
+		uint8_t effectX = (effectParam&0xF0) >> 4;
+		uint8_t effectY = effectParam&0x0F;
 
 
 		trk->periodToPlay = trk->currentPeriod;
@@ -884,8 +884,8 @@ void MODModule::UpdateMixer(void)
 		}
 
 
-		int pan = (u8) Clamp((int)trk->panning*2, (int)0, (int)255);
-		m_mixer->SetPanning(trk->mixerChannelUsed, (u8) pan);
+		int pan = (uint8_t) Clamp((int)trk->panning*2, (int)0, (int)255);
+		m_mixer->SetPanning(trk->mixerChannelUsed, (uint8_t) pan);
 	}
 }
 

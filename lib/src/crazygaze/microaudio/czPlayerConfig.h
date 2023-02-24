@@ -33,7 +33,7 @@ namespace cz
 	#define CZ_PLAYER_ERRORCALLBACK_ENABLED 1 /**< @hideinitializer Set this to 0 or 1 to cause a call to "OnError" every time an error occurs*/
 #else
 	#ifndef CZ_PLAYER_ERRORCALLBACK_ENABLED
-		#if (CZ_PLATFORM==CZ_PLATFORM_WIN32)
+		#if CZ_PLATFORM_WIN32
 			#define CZ_PLAYER_ERRORCALLBACK_ENABLED 1
 		#else
 			#define CZ_PLAYER_ERRORCALLBACK_ENABLED 0
@@ -45,7 +45,7 @@ namespace cz
 	#define CZ_PLAYER_EXTRAFUNCTIONS_ENABLED 1 /**< @hideinitializer Set this to 0 or 1 to compile rarely used functions */
 #else
 	#ifndef CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
-		#if (CZ_PLATFORM==CZ_PLATFORM_WIN32)
+		#if CZ_PLATFORM_WIN32
 			#define CZ_PLAYER_EXTRAFUNCTIONS_ENABLED 1
 		#else
 			#define CZ_PLAYER_EXTRAFUNCTIONS_ENABLED 0
@@ -81,7 +81,7 @@ namespace cz
 	#define CZ_PLAYER_OGG_ENABLED 1 /**< @hideinitializer Set this to 0 or 1 to disable/enable support for Ogg*/
 #else
 	#ifndef CZ_PLAYER_OGG_ENABLED
-		#define CZ_PLAYER_OGG_ENABLED 1
+		#define CZ_PLAYER_OGG_ENABLED 0
 	#endif
 #endif
 

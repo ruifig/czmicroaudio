@@ -19,7 +19,7 @@ namespace audio
 // forward declarations
 class StaticSound;
 
-typedef s32 fixed16_16;
+typedef int32_t fixed16_16;
 
 			/* SKIP THIS DOCUMENTATION */
 #ifndef DOXYGEN_SKIP
@@ -182,7 +182,7 @@ typedef struct
 	IT_SAMPLE *smp;    // pointer to IT sample
 	StaticSound *wv;	   // pointer to wave data
 	
-	u8 note;
+	uint8_t note;
 	int insnum; // instrument number (1...)
 	int smpnum; // sample number (1....)
 
@@ -199,7 +199,7 @@ typedef struct
 	
 
 	unsigned short SampleVibratoAcum;
-	u8 samplevibpos;
+	uint8_t samplevibpos;
 	
 	ENVCONTROL VolEnv,PanEnv,PitEnv;
 	unsigned char UseVolEnv,UsePanEnv,UsePitEnv;
@@ -217,15 +217,15 @@ typedef struct{
 	unsigned char kick;
 	unsigned char OnlyKickVolume;
 	
-	u8 note;
+	uint8_t note;
 	int insnum; // instrument number (1...)
 	int smpnum; // sample number (1....)
-	u8 isvoleffect;
-	u8 voleffect;
-	u8 effect;
-	u8 effectdata;
-	u8 instpresent;
-	u8 realnote;
+	uint8_t isvoleffect;
+	uint8_t voleffect;
+	uint8_t effect;
+	uint8_t effectdata;
+	uint8_t instpresent;
+	uint8_t realnote;
 
 
 	int ChannelVol;
@@ -234,9 +234,9 @@ typedef struct{
 	int NotePan;
 	int InitialNoteVol;
 	
-	u8 NNA;
-	u8 DCT;
-	u8 DCA;
+	uint8_t NNA;
+	uint8_t DCT;
+	uint8_t DCA;
 	
 
 	fixed16_16 VibFreqMul;
@@ -282,13 +282,13 @@ typedef struct{
 	unsigned char tremolo_mem;
 	unsigned char trempos;
 	int TremoloAdd;
-	u8 istremolo;
+	uint8_t istremolo;
 	unsigned char settempo_mem;
 
 	unsigned char panbrello_mem;
 	int PanbrelloAdd;
 	unsigned char panbrellopos;
-	u8 ispanbrello;
+	uint8_t ispanbrello;
 } TRACK;
 
 
@@ -403,9 +403,10 @@ class ITModule : public ::cz::audio::Module {
          */
 		//int SetMixingParameters(int frequency, bool stereo, bool bits16, int numChannels, int32_t bufferMs);
 
-		int Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, u8 volume=20);
+		int Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, uint8_t volume=20);
 
 		//int GetFirstMixerChannel(void);
+#if CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
 		int GetChannels(void);
 		int GetPosition(void);
 		int GetOrders(void);
@@ -413,7 +414,8 @@ class ITModule : public ::cz::audio::Module {
 		int GetPatternRows(void);
 		int GetRow(void);
 		int GetSpeed(void);
-		int SetMasterVolume(u8 vol);
+		int SetMasterVolume(uint8_t vol);
+#endif
 
 		int Stop();
 		int Pause();
@@ -472,10 +474,10 @@ protected:
 
 private:
 		
-	u8 Loaded; // is the file loaded ??
-	u8 IsPlaying;
-	u8 IsPaused;
-	u8 PatternEnd;
+	uint8_t Loaded; // is the file loaded ??
+	uint8_t IsPlaying;
+	uint8_t IsPaused;
+	uint8_t PatternEnd;
 //	int m_firstMixerChannel;
 	
 	// Only needed by the Pause function
@@ -489,11 +491,11 @@ private:
 	IT_PATTERN *patterns; // Array of patterns
 	
 	int dumptr[MAX(MAX(MAX_IT_INSTRUMENTS,MAX_IT_SAMPLES),MAX_IT_PATTERNS)];
-	u8 InstrumentMode;
-	u8 Linear;
-	u8 OldEffects;
-	u8 GxxComp;
-	u8 it_channels;
+	uint8_t InstrumentMode;
+	uint8_t Linear;
+	uint8_t OldEffects;
+	uint8_t GxxComp;
+	uint8_t it_channels;
 	
 /****************************************/
 	short ProcessRow;
@@ -514,13 +516,13 @@ private:
 
 	int GlobalVol;
 	int NextPackPos;
-	u8 PatternDelay;
+	uint8_t PatternDelay;
 	
 	IT_CHANNEL_LAST_INFO *ChLastInfo; // Pointer to array of size [it_channels]
 	IT_NOTE *rowinfo; // Pointer to array of size [it_channels]
 
 
-	u8 m_masterVolume;
+	uint8_t m_masterVolume;
 
 /*****************************************/
     virtual void DoTick(void);
@@ -531,8 +533,8 @@ private:
 	
 
 	void UpdateEnvelope(IT_ENVELOPE *env, ENVCONTROL *ctrl);
-	void PrepareEnvelope(u8 keyon,IT_ENVELOPE *env, ENVCONTROL *ctrl);
-    void PrepareEnvelopes(u8 keyon, VIRTUALCHANNEL *vc);
+	void PrepareEnvelope(uint8_t keyon,IT_ENVELOPE *env, ENVCONTROL *ctrl);
+    void PrepareEnvelopes(uint8_t keyon, VIRTUALCHANNEL *vc);
 	
 	void KillChannel(int ch);
 	void DoNoteOff(int channel);

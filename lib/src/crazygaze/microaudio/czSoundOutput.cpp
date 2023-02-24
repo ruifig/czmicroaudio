@@ -14,11 +14,10 @@
 #include "czMemFile.h"
 #include "czWAVLoader.h"
 
-#if CZ_PLATFORM==CZ_PLATFORM_SYMBIAN
-	#include "czSymbianOutput.h"
-#elif CZ_PLATFORM==CZ_PLATFORM_WIN32
+#if CZ_PLATFORM_WIN32
 	#include "win32/czWin32WaveOutOutput.h"
-	#include "OpenAL/czOpenALOutput.h"
+#elif CZ_PLATFORM_ARDUINO
+	#include "arduino/czArduinoI2SOutOutput.h"
 #else
 	#error Unknown platform
 #endif
@@ -47,15 +46,7 @@ int AudioPlayer::GetDefaultConfig(AudioPlayerConfig *cfg)
 {
 	memset(cfg,0,sizeof(*cfg));
 
-#if CZ_PLATFORM==CZ_PLATFORM_SYMBIAN
-	cfg->driverType = AUDIO_DRIVER_SYMBIAN;
-	cfg->bufSizeMs=50;
-	cfg->frequency = 16000;
-	cfg->bits = 16;
-	cfg->outputChannels=1;
-	cfg->maxChannels=128;
-	cfg->interpolationMode = AUDIO_INTERPOLATION_NONE;
-#elif CZ_PLATFORM==CZ_PLATFORM_WIN32
+#if CZ_PLATFORM_WIN32
 	cfg->driverType = AUDIO_DRIVER_WINMM;
 	cfg->bufSizeMs=200;
 	cfg->frequency = 48000;
@@ -63,8 +54,16 @@ int AudioPlayer::GetDefaultConfig(AudioPlayerConfig *cfg)
 	cfg->outputChannels=2;
 	cfg->maxChannels=128;
 	cfg->interpolationMode = AUDIO_INTERPOLATION_LINEAR;
+#elif CZ_PLATFORM_ARDUINO
+	cfg->driverType = AUDIO_DRIVER_ARDUINO_I2S;
+	cfg->bufSizeMs=50;
+	cfg->frequency = 16000;
+	cfg->bits = 16;
+	cfg->outputChannels=2;
+	cfg->maxChannels=32;
+	cfg->interpolationMode = AUDIO_INTERPOLATION_NONE;
 #else
-#error No platform specific configuration
+	#error No platform specific configuration
 #endif
 
 	return ERR_OK;
@@ -236,7 +235,7 @@ void SoundOutput::UpdateStatus()
 int SoundOutput::FeedData(void *ptr, int numFrames)
 {
 
-	u8 *mx=(u8 *)ptr;
+	uint8_t *mx=(uint8_t *)ptr;
 	int mixPosBytes = 0;
 	int frameSizeBytes = m_mixer.GetFrameSizeBytes();
 
@@ -362,7 +361,7 @@ HMODULEDATA SoundOutput::LoadModule(const char* filename)
 HMODULEDATA SoundOutput::LoadModule(const void* data, int dataSize)
 {
 	::cz::io::MemFile in(m_core);
-	in.Open((u8*)data, dataSize);
+	in.Open((uint8_t*)data, dataSize);
 	Module *mod = LoadModule(&in);
 	in.Close();
 	return mod;
@@ -377,13 +376,13 @@ HMODULEDATA SoundOutput::LoadModule(const void* data, int dataSize)
 struct formatchunk
 {
 	char fID[4];
-	u32 fLen;
-	u16 wFormatTag;
-	u16 nChannels;
-	u32 nSamplesPerSec;
-	u32 nAvgBytesPerSec;
-	u16 nBlockAlign;
-	u16 FormatSpecific;
+	uint32_t fLen;
+	uint16_t wFormatTag;
+	uint16_t nChannels;
+	uint32_t nSamplesPerSec;
+	uint32_t nAvgBytesPerSec;
+	uint16_t nBlockAlign;
+	uint16_t FormatSpecific;
 };
 #define WAVE_FORMAT_PCM 1
 
@@ -421,7 +420,7 @@ HSOUNDDATA SoundOutput::LoadWAV(const char* filename)
 HSOUNDDATA SoundOutput::LoadWAV(const void *data, int dataSize)
 {
 	::cz::io::MemFile in(m_core);
-	in.Open((u8*)data,dataSize);	
+	in.Open((uint8_t*)data,dataSize);	
 	return LoadWAV(&in);
 }
 
@@ -456,7 +455,7 @@ HMODULEDATA SoundOutput::LoadStream(const void* data, int dataSize)
 	::cz::io::MemFile* in = CZNEW(::cz::io::MemFile)(m_core);
 	void* ownmemory = CZALLOC(dataSize);
 	memcpy(ownmemory, data, dataSize);
-	in->Open(static_cast<u8*>(ownmemory), dataSize, true);
+	in->Open(static_cast<uint8_t*>(ownmemory), dataSize, true);
 	StreamSound* stream = LoadStream(in);
 	return stream;
 }
@@ -484,7 +483,7 @@ HSTREAMDATA SoundOutput::LoadStream(const char* filename)
 	}
 
 	::cz::io::MemFile* memfile = CZNEW(::cz::io::MemFile)(m_core);
-	memfile->Open(static_cast<u8*>(ownmemory), fileSize, true);
+	memfile->Open(static_cast<uint8_t*>(ownmemory), fileSize, true);
 
 	StreamSound *stream = LoadStream(memfile);
 	return stream;
@@ -772,7 +771,7 @@ int SoundOutput::StopAll(void)
 	return ERR_OK;
 }
 
-int SoundOutput::SetVolume(HSOUND sndHandle, u8 vol)
+int SoundOutput::SetVolume(HSOUND sndHandle, uint8_t vol)
 {
 	PROFILE();
 
@@ -810,7 +809,7 @@ int SoundOutput::SetFrequency(HSOUND sndHandle, int freq)
 	return ERR_OK;	
 }
 
-int SoundOutput::SetPanning(HSOUND sndHandle, u8 pan)
+int SoundOutput::SetPanning(HSOUND sndHandle, uint8_t pan)
 {
 	PROFILE();
 
@@ -939,28 +938,24 @@ AudioPlayer* AudioPlayer::Create(Core *core, AudioPlayerConfig *cfg)
 	//
 	// configuration on a platform basis
 	//
-#if CZ_PLATFORM==CZ_PLATFORM_SYMBIAN
-	if (cfgToUse.driverType!=AUDIO_DRIVER_SYMBIAN)
-	{
-		CZLOG(LOG_ERROR, "Invalid output driver specified");
-		CZERROR_RETNULL(ERR_INVPAR);
-	}
-	SymbianOutput* out = CZNEW(SymbianOutput)(core);
-#elif CZ_PLATFORM==CZ_PLATFORM_WIN32
+#if CZ_PLATFORM_WIN32
 	SoundOutput* out = NULL;
 	if (cfgToUse.driverType==AUDIO_DRIVER_WINMM)
 	{
 		out = CZNEW(Win32WaveOutOutput)(core);
-	}
-	else if (cfgToUse.driverType==AUDIO_DRIVER_OPENAL)
-	{
-		out = CZNEW(OpenALOutput(core));
 	}
 	else
 	{
 		CZLOG(LOG_ERROR,"Invalid output driver specified");
 		CZERROR_RETNULL(ERR_INVPAR);
 	}
+#elif CZ_PLATFORM_ARDUINO
+	if (cfgToUse.driverType!=AUDIO_DRIVER_ARDUINO_I2S)
+	{
+		CZLOG(LOG_ERROR, "Invalid output driver specified");
+		CZERROR_RETNULL(ERR_INVPAR);
+	}
+	ArduinoI2SOutput* out = CZNEW(ArduinoI2SOutput)(core);
 #else
 	#error No platform specific code specified
 #endif
@@ -968,7 +963,7 @@ AudioPlayer* AudioPlayer::Create(Core *core, AudioPlayerConfig *cfg)
 	if (out==NULL)
 		CZERROR_RETNULL(ERR_NOMEM);
 
-	// :TODO: I should code a more robust configuration validation, because some platforms require certain frequencies, bits, etc
+	// #TODO: I should code a more robust configuration validation, because some platforms require certain frequencies, bits, etc
 
 	int err=out->Init(cfgToUse.maxChannels, cfgToUse.bufSizeMs, (cfgToUse.outputChannels==2) ? true : false, (cfgToUse.bits==16) ? true : false, cfgToUse.frequency);
 	if (err!=ERR_OK)
@@ -985,11 +980,7 @@ AudioPlayer* AudioPlayer::Create(Core *core, AudioPlayerConfig *cfg)
 	return out;
 
 }
-// NOTE : DONT put any code below this function. This function must be the last one in the file
-//
-
-
-
 
 } // namespace audio
 } // namespace cz
+

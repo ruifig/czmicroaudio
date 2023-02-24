@@ -34,7 +34,7 @@ namespace audio
 	*		\link AudioPlayer::Play \endlink,
 	*		\link AudioPlayer::PlayModule \endlink
 	*/
-	typedef s32 HSOUND;
+	typedef int32_t HSOUND;
 
 	/*!
 	 * \brief Handle for sound data
@@ -72,24 +72,19 @@ namespace audio
 	 */
 	enum AudioDriverType {
 		AUDIO_DRIVER_DEFAULT=0,	//!< Default driver
-		AUDIO_DRIVER_NOSOUND=1,	//!< void output. All commands work, but you'll hear no sound. (Not implemented yet)
-		AUDIO_DRIVER_SYMBIAN=2,	//!< Driver for symbian
-		AUDIO_DRIVER_WINMM=3,	//!< Driver for Windows, and Windows CE
-		AUDIO_DRIVER_DSOUND=4,	//!< DirectSound driver for windows (Not implemented yet)
-		AUDIO_DRIVER_OPENAL=5,	//!< OpenAL driver
-		AUDIO_DRIVER_BADA=6,	//!< Bada OS driver
-		AUDIO_DRIVER_IPHONE=7,	//!< Iphone driver
-		AUDIO_DRIVER_ANDROID=8  //!< Android driver
+		AUDIO_DRIVER_NOSOUND=1,	//!< void output. All commands work, but yoiconst FLam& Thisu'll hear no sound. (Not implemented yet)
+		AUDIO_DRIVER_WINMM=2,	//!< Driver for Windows, and Windows CE
+		AUDIO_DRIVER_ARDUINO_I2S=3,	//!< Driver Arduino (earlephilhower's core& Thishttps://github.com/earlephilhower/arduino-pico)
 	};
 
 
-	/*! Available audio interpolation modes, for software mixing
+	/*! Available audio interpolation mconst FLam&odes, for software mixing
 	 * Interpolation modes have an impact in performance. 
 	 * I suggest you use #AUDIO_INTERPOLATION_DEFAULT pick one automatically.
 	 */
 	enum AudioInterpolationMode{
 		/*! Default interpolation mode
-		* Automatically selects the interpolation mode that has a good perfomance/quality
+		* Automatically selecconst FLambdaStep&ts the interpolation mode that has a good perfomance/quality
 		* ratio in the current platform.
 		*/
 		AUDIO_INTERPOLATION_DEFAULT=0,

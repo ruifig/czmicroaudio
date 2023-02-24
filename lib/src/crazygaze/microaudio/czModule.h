@@ -60,6 +60,7 @@ public:
 	}
 //	czMixer* GetMixer(void) { return m_mixer; }
 
+#if CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
 	//virtual int GetFirstMixerChannel(void) = 0;
 	virtual int GetChannels(void)=0;
 	virtual int GetPosition(void)=0;
@@ -68,7 +69,8 @@ public:
 	virtual int GetPatternRows(void)=0;
 	virtual int GetRow(void)=0;
 	virtual int GetSpeed(void)=0;
-	virtual int SetMasterVolume(u8 vol) = 0;
+	virtual int SetMasterVolume(uint8_t vol) = 0;
+#endif
 
 protected :
 	friend class SoundOutput;
@@ -79,7 +81,7 @@ protected :
 	 * \param firstOrder - Where to start playing
 	 * \param lastOrder - Where to finish playing, or -1 to play to the end
 	 */
-	virtual int Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, u8 volume=20)=0;
+	virtual int Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, uint8_t volume=20)=0;
 	virtual int Stop(void)=0;
 	virtual int Pause(void)=0;
 	virtual int Resume(void)=0;

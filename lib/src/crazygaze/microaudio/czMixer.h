@@ -37,32 +37,32 @@ class StreamSound;
 
 typedef struct 
 {
-	s32 currLvol;
-	s32 destLvol;
-	s32 currRvol;
-	s32 destRvol;
-	s32 incLvol;
-	s32 incRvol;
+	int32_t currLvol;
+	int32_t destLvol;
+	int32_t currRvol;
+	int32_t destRvol;
+	int32_t incLvol;
+	int32_t incRvol;
 	int volrampcount;
 	
-	s32 lastSampleMixedL;
-	s32 lastSampleMixedR;
+	int32_t lastSampleMixedL;
+	int32_t lastSampleMixedR;
 
 	bool restart;
 } VOLUME_STATE;
 
 typedef struct  
 {
-	s32 currLval;
-	s32 currRval;
-	s32 incLval;
-	s32 incRval;
-	s32 stoprampcount;
+	int32_t currLval;
+	int32_t currRval;
+	int32_t incLval;
+	int32_t incRval;
+	int32_t stoprampcount;
 	bool restart;
 } STOPRAMP_STATE;
 
-typedef u32 (MXFUNC)(s32 *dest,void *src, s32 pos ,s32 inc,
-						 VOLUME_STATE *volstate, s32 portion);
+typedef uint32_t (MXFUNC)(int32_t *dest,void *src, int32_t pos ,int32_t inc,
+						 VOLUME_STATE *volstate, int32_t portion);
 
 typedef struct
 {
@@ -70,24 +70,24 @@ typedef struct
 				// with fractbits
 	int repeat;		// goes here after hitting  end
 	int end;		// position of last sample+1
-	u32 freq;		// playing frequency in hertz
+	uint32_t freq;		// playing frequency in hertz
 	StaticSound *snd;		// pointer to current wave	
-	u8 vol;              // Note volume, ranges from 0 to 255
-	u8 mastervol;        // 0-64 = whole volume range of output
-	u8 panning;          // 0 left, 128 middle, 255 right
+	uint8_t vol;              // Note volume, ranges from 0 to 255
+	uint8_t mastervol;        // 0-64 = whole volume range of output
+	uint8_t panning;          // 0 left, 128 middle, 255 right
 	int lloop;		// loop mode
-	u8 on;		// on ???       
+	uint8_t on;		// on ???       
                 
-	u8 back;     // is it going back (ping-pong loop!!!)
-	s32 increment;// increment (samplefrequency/mixfrequency)
+	uint8_t back;     // is it going back (ping-pong loop!!!)
+	int32_t increment;// increment (samplefrequency/mixfrequency)
 
 	MXFUNC *mixfunc;
 
-	u32 tag; // custom tag, for anything the user may need
+	uint32_t tag; // custom tag, for anything the user may need
 	
 	// tells if the channel is reserved. This is used for when playing songs.
 	// A songs needs to use consecutive channels, so we must mark the channels requested by a song.
-	u8 reserved; 
+	uint8_t reserved; 
 
 	VOLUME_STATE volState;
 	STOPRAMP_STATE stopRampState;
@@ -106,9 +106,9 @@ class Mixer : public ::cz::Object
 public:
 	Mixer(::cz::Core *parentObject);
 	virtual ~Mixer();
-	int Init(u32 numberofchannels, u32 mixsize, bool stereo, bool is16bits, u16 freq);
+	int Init(uint32_t numberofchannels, uint32_t mixsize, bool stereo, bool is16bits, uint16_t freq);
 	void Free(void);
-	int MixPortion(void *dest, u32 len);
+	int MixPortion(void *dest, uint32_t len);
 
 	void SetVolumeRamping(int numFrames);
 	int GetVolumeRamping()
@@ -125,24 +125,24 @@ public:
 	AudioInterpolationMode GetQuality();
 
 	/* interface functions */
-	int SetVoice(u32 ch, StaticSound *sound,
-			 u32 current, u32 end, u32 repeat,
-			 u32 freq, u8 vol, u8 pan, int loopmode);
-	int SetVoice(u32 ch, StreamSound *stream, u8 vol, bool loop);
-	int SetSample(int ch, StaticSound *snd,u32 current, u32 end, u32 repeat,  int loopmode);
+	int SetVoice(uint32_t ch, StaticSound *sound,
+			 uint32_t current, uint32_t end, uint32_t repeat,
+			 uint32_t freq, uint8_t vol, uint8_t pan, int loopmode);
+	int SetVoice(uint32_t ch, StreamSound *stream, uint8_t vol, bool loop);
+	int SetSample(int ch, StaticSound *snd,uint32_t current, uint32_t end, uint32_t repeat,  int loopmode);
 
-	int SetPosition(int ch, u32 current);
-	int SetLoop(u8 ch, u32 loopbeg, u32 loopend, int loopmode);
-	int SetFrequency(int ch, u32 freq);
-	int SetVolume(int ch, u8 vol);
-	int SetPanning(int ch, u8 pan);
+	int SetPosition(int ch, uint32_t current);
+	int SetLoop(uint8_t ch, uint32_t loopbeg, uint32_t loopend, int loopmode);
+	int SetFrequency(int ch, uint32_t freq);
+	int SetVolume(int ch, uint8_t vol);
+	int SetPanning(int ch, uint8_t pan);
 	int SetVoiceStatus(int ch, int on);
 
 	int SetMixingListener(int ch, ChannelMixingListener* listener);
 
-	void SetMasterVolume(u8 v);	
+	void SetMasterVolume(uint8_t v);	
 	
-	int SetMasterVolume(u8 v,u32 firstchannel,u32 howmany);	
+	int SetMasterVolume(uint8_t v,uint32_t firstchannel,uint32_t howmany);	
 	int GetFreeChannel(void);
     
 	int IsVoiceON(int ch);
@@ -154,13 +154,13 @@ public:
 	int ReserveSingleChannel(int channel);
 	int FreeChannel(int channel);
 
-	u32 GetChannelTag(int ch);
-	void SetChannelTag(int ch, u32 tag);
+	uint32_t GetChannelTag(int ch);
+	void SetChannelTag(int ch, uint32_t tag);
 	
 	// Returns the buffer size in bytes
-	u32 GetMaxOutputBufferSizeBytes();
+	uint32_t GetMaxOutputBufferSizeBytes();
 	// Return the buffer size in frames
-	u32 GetMaxOutputBufferSizeFrames();
+	uint32_t GetMaxOutputBufferSizeFrames();
 
 	int GetFrameSizeBytes(void);
 	int GetMixFrequency(void);
@@ -197,26 +197,26 @@ public:
 
 private:
 
-	void MakeOutput(u8 *dest,u32 todo);
-	void MakeOutput(u16 *dest,u32 todo);
-	void MixChannel(CHANNEL *chptr,u32 len, s32 *mixbuff);
+	void MakeOutput(uint8_t *dest,uint32_t todo);
+	void MakeOutput(uint16_t *dest,uint32_t todo);
+	void MixChannel(CHANNEL *chptr,uint32_t len, int32_t *mixbuff);
 
 	void SetStopRamp(CHANNEL *chptr);
-	void Mix_StopRamp(s32 *dest, STOPRAMP_STATE *stoprampstate, s32 portion);
+	void Mix_StopRamp(int32_t *dest, STOPRAMP_STATE *stoprampstate, int32_t portion);
 
 
 	// Mixer variable members
 
 	// Buffer used for mixing
-	s32 *m_mixblock;
+	int32_t *m_mixblock;
 
 	CHANNEL *channels;
-	u32 samples; // blocksize in nº of DWORDS, not BYTES
-	u32 samplesize; // DWORDS per sample	
+	uint32_t samples; // blocksize in nº of DWORDS, not BYTES
+	uint32_t samplesize; // DWORDS per sample	
 	int nch;	// number of channels
 	bool IS_16BITS; // 8, or 16 bits
 	bool IS_STEREO; // is stereo ?
-	u32 FREQUENCY; // mixing frequency
+	uint32_t FREQUENCY; // mixing frequency
 	int volumeRampingNumFrames;
 	int stopRampingNumFrames;
 	AudioInterpolationMode QualityType;

@@ -213,15 +213,15 @@ private:
 	int m_format;
 
 	int m_frequency;
-	u8 m_vol;
-	u8 m_pan;
+	uint8_t m_vol;
+	uint8_t m_pan;
 
 	int m_length;	// length of sound in bytes
 	int m_frames;  // nº of frames
 	int m_framesize; // frame size in BITS
-	u8 *m_startptr; // used to free memory
+	uint8_t *m_startptr; // used to free memory
 	int m_allocatedSize; // total allocated size in bytes, accounting for the safety bounds
-	u8 *m_dptr; // pointer to samples
+	uint8_t *m_dptr; // pointer to samples
 
 	int m_loopStart;
 	int m_loopLength;

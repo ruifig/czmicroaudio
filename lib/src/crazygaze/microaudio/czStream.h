@@ -20,38 +20,15 @@
 #include "czStaticSound.h"
 #include "czMixerListener.h"
 
+#if CZ_PLAYER_OGG_ENABLED
 #include "ivorbiscodec.h"
 #include "ivorbisfile.h"
+#endif
 
 namespace cz
 {
 namespace audio
 {
-
-/*
-class StreamSound;
-class StreamChunkReader : public WorkerThreadJob
-{
-public:
-	StreamChunkReader();
-	virtual ~StreamChunkReader();
-	void Init(StreamSound* parent, OggVorbis_File* info);
-protected:
-
-	//! \brief Called as a notification the work item was queued and is waiting to be processed
-	virtual void OnQueued();
-
-	//! \brief Called to do whatever the work unit needs to do
-	virtual Result Run();
-
-	//! \brief Called when the work item is canceled (e.g: The Worker thread was requested to cancel all pending work items)
-	virtual void OnCanceled();
-
-	StreamSound* m_parent;
-	OggVorbis_File* m_ogg;
-};
-
-*/
 
 //! Only supports ogg vorbis at the moment
 class StreamSound : public ::cz::Object, public ::cz::audio::ChannelMixingListener
@@ -107,7 +84,10 @@ private:
 	bool m_isplaying;
 	::cz::io::File *m_in;
 	StaticSound m_snd;
+
+#if CZ_PLAYER_OGG_ENABLED
 	OggVorbis_File m_ogg;
+#endif
 	int m_lastPos; // Last played position within the working buffer
 	
 	// if this is -1, it means we're not finishing
@@ -118,6 +98,7 @@ private:
 	bool m_loop;
 	//StreamChunkReader m_jobs[kNUM_CHUNKS];
 };
+
 
 } // namespace audio
 } // namespace cz

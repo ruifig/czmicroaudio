@@ -27,7 +27,7 @@ public:
 	
 	// \param transferOwnership
 	//		If this is true, then the object will own the memory block, and will deallocate it when destroyed
-	int Open(u8 *ptr, int size, bool transferOwnership=false);
+	int Open(uint8_t *ptr, int size, bool transferOwnership=false);
 	virtual int Close(void);
 	virtual int GetPos(void);
 	virtual int Seek(int pos, FileSeekOrigin origin);
@@ -36,7 +36,7 @@ public:
 
 private:
 	int m_pos;
-	u8 *m_memPtr;
+	uint8_t *m_memPtr;
 	int m_size;
 	bool m_ownsMemory;
 };

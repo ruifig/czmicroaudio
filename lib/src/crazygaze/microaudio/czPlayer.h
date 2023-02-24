@@ -10,9 +10,8 @@
 #ifndef _czPlayer_h_
 #define _czPlayer_h_
 
-#include "czPlatformStableHeaders.h"
+#include "czPlatformHeaders.h"
 #include <stddef.h>
-#include <Mmsystem.h>
 
 #ifndef NULL
 #define	NULL	0L

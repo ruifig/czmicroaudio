@@ -62,7 +62,7 @@ typedef struct
 	bool isStream;
 	bool feedByBlocks;
 	//TTime msAtStreamEnd; // workaround to avoid stopping streams suddenly when they reach the end
-	s32 circularFlag; // Flag used to decide when to feed the new data.
+	int32_t circularFlag; // Flag used to decide when to feed the new data.
 
 	bool paused; // Tells if the sound is paused
 
@@ -131,9 +131,9 @@ public:
 	virtual HSOUND PlayStream(HSTREAMDATA sndDataHandle, int vol=AUDIO_VOL_MAX/2, bool loop=false);
 	virtual int Stop(HSOUND sndHandle);
 	virtual int StopAll(void);
-	virtual int SetVolume(HSOUND sndHandle, u8 vol);
+	virtual int SetVolume(HSOUND sndHandle, uint8_t vol);
 	virtual int SetFrequency(HSOUND sndHandle, int freq);
-	virtual int SetPanning(HSOUND sndHandle, u8 pan);
+	virtual int SetPanning(HSOUND sndHandle, uint8_t pan);
 	virtual int Pause(HSOUND sndHandle);
 	virtual int Resume(HSOUND sndHandle);
 	virtual AudioPlayerListener* SetListener(AudioPlayerListener *listener);
@@ -149,12 +149,8 @@ protected:
 	virtual int Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits16, int freq );
 	int InitSoftwareMixerOutput(int maxActiveSounds, int mixSize, bool stereo, bool bits16, int freq );
 
-	virtual void LockMixer()
-	{
-	}
-	virtual void UnlockMixer()
-	{
-	}
+	virtual void LockMixer() = 0;
+	virtual void UnlockMixer() = 0;
 	
 	Mixer m_mixer;
 	AudioPlayerListener *m_listener;
@@ -179,7 +175,7 @@ private:
 	SOUND_ST *m_sounds;
 	SOUND_ST *GetEmptySlot(void);
 	SOUND_ST *GetSlot(HSOUND sndHandle);
-	u32 m_lastHandle;
+	uint32_t m_lastHandle;
 
 #if CZ_PLAYER_OGG_ENABLED
 	//WorkerThread m_iothread;

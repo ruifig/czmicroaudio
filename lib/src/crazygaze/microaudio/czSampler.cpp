@@ -48,7 +48,7 @@ bool SoundBuffer::Init(int numFrames, int numChannels, SoundBufferType type)
 	m_numChannels = numChannels;
 	m_numFrames = numFrames;
 	int bytes = SizeOf(type)*numFrames*numChannels;
-	m_allocatedPtr = static_cast<u8*>(CZALLOC(bytes));
+	m_allocatedPtr = static_cast<uint8_t*>(CZALLOC(bytes));
 
 	return true;
 }
@@ -73,7 +73,7 @@ void* SoundBuffer::GetPtrToSample(int channel, int sampleOffset)
 	CZASSERT(sampleOffset<m_numFrames);
 
 	int samplesize = SizeOf(1);
-	u8* p = m_allocatedPtr + (channel*(samplesize*m_numFrames)) + sampleOffset;
+	uint8_t* p = m_allocatedPtr + (channel*(samplesize*m_numFrames)) + sampleOffset;
 	return p;
 }
 

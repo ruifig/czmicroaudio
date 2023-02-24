@@ -8,24 +8,64 @@
 //
 
 #include "czWin32WaveOutOutput.h"
+#include <thread>
+#include <mutex>
+#include <windows.h>
+#include <Mmsystem.h>
 
 namespace cz
 {
 namespace audio
 {
 
+class Win32WaveOutOutputImpl : public ::cz::Object
+{
+
+public:
+	Win32WaveOutOutputImpl(Win32WaveOutOutput* outer);
+	virtual ~Win32WaveOutOutputImpl();
+	int Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits16, int freq );
+	void PauseOutput(bool freeResources);
+	void ResumeOutput(void);
+
+	int writeBlock(void);
+	void LockMixer();
+	void UnlockMixer();
+private:
+
+	Win32WaveOutOutput* m_outer;
+	HWAVEOUT m_hWaveOut; /* device handle */
+	std::mutex m_waveOutMutex;
+	std::recursive_mutex m_mixerMutex;
+	std::condition_variable m_processCond;
+	volatile bool m_finish;
+	volatile uint32_t m_msgCounter;
+	std::thread m_workerThread;
+
+	WAVEHDR*         m_waveBlocks;
+	volatile int     m_waveFreeBlockCount;
+	int              m_waveCurrentBlock;
+	int m_numFramesInBlock;
+
+	static void RunWorkerThread(volatile bool &started, Win32WaveOutOutputImpl* sndOut);
+
+	int m_waveBlockSize; // Block size in bytes
+
+	static void CALLBACK waveOutProc( HWAVEOUT hWaveOut, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2);
+};
+
 //#define CZWIN32WAVEOUT_BLOCK_SIZE 8820
 #define CZWIN32WAVEOUT_BLOCK_COUNT 4
 
-void Win32WaveOutOutput::RunWorkerThread(volatile bool& started, Win32WaveOutOutput* sndOut)
+void Win32WaveOutOutputImpl::RunWorkerThread(volatile bool& started, Win32WaveOutOutputImpl* sndOut)
 {
 	started = true;
-	u32 counter=sndOut->m_msgCounter;
+	uint32_t counter=sndOut->m_msgCounter;
 	while(!sndOut->m_finish)
 	{
 		while(counter==sndOut->m_msgCounter && !sndOut->m_finish)
 		{
-			::cz::unique_lock<::cz::recursive_mutex> lk(sndOut->m_waveOutMutex);
+			std::unique_lock<std::mutex> lk(sndOut->m_waveOutMutex);
 			sndOut->m_processCond.wait(lk);
 		}
 
@@ -63,11 +103,11 @@ char* WaveOutErrorStr(MMRESULT err)
 }
 */
 
-void CALLBACK Win32WaveOutOutput::waveOutProc( HWAVEOUT CZUNUSED(hWaveOut), UINT uMsg, DWORD dwInstance, DWORD CZUNUSED(dwParam1), DWORD CZUNUSED(dwParam2))
+void CALLBACK Win32WaveOutOutputImpl::waveOutProc( HWAVEOUT CZUNUSED(hWaveOut), UINT uMsg, DWORD dwInstance, DWORD CZUNUSED(dwParam1), DWORD CZUNUSED(dwParam2))
 {
 
 	if(uMsg==WOM_DONE){
-		Win32WaveOutOutput* obj = (Win32WaveOutOutput*) dwInstance ;
+		Win32WaveOutOutputImpl* obj = (Win32WaveOutOutputImpl*) dwInstance ;
 		obj->m_waveOutMutex.lock();
 		obj->m_waveFreeBlockCount++;
 		obj->m_msgCounter++;
@@ -78,14 +118,14 @@ void CALLBACK Win32WaveOutOutput::waveOutProc( HWAVEOUT CZUNUSED(hWaveOut), UINT
 }
 
 
-void Win32WaveOutOutput::LockMixer(){
+void Win32WaveOutOutputImpl::LockMixer(){
 	m_mixerMutex.lock();
 }
-void Win32WaveOutOutput::UnlockMixer(){
+void Win32WaveOutOutputImpl::UnlockMixer(){
 	m_mixerMutex.unlock();
 }
 
-int Win32WaveOutOutput::writeBlock(void)
+int Win32WaveOutOutputImpl::writeBlock(void)
 {
 
 	WAVEHDR* current;
@@ -102,9 +142,8 @@ int Win32WaveOutOutput::writeBlock(void)
 			CZERROR(ERR_BADAPICALL);
 		}
 
-
-	UpdateStatus();
-	FeedData(current->lpData, m_numFramesInBlock);
+	m_outer->UpdateStatus();
+	m_outer->FeedData(current->lpData, m_numFramesInBlock);
 	current->dwBufferLength = m_waveBlockSize;
 	current->dwUser = m_waveBlockSize;
 	current->dwFlags=0;
@@ -131,16 +170,18 @@ int Win32WaveOutOutput::writeBlock(void)
 	return ERR_OK;
 }
 
-Win32WaveOutOutput::Win32WaveOutOutput(::cz::Core *parentObject) : SoundOutput(parentObject)
+Win32WaveOutOutputImpl::Win32WaveOutOutputImpl(Win32WaveOutOutput* outer)
+	: ::cz::Object(outer->m_core)
 {
 	PROFILE();
+	m_outer = outer;
 	m_hWaveOut = NULL;
 	m_waveBlocks = NULL;
 	m_msgCounter = 0;
 	m_finish = false;
 }
 
-Win32WaveOutOutput::~Win32WaveOutOutput()
+Win32WaveOutOutputImpl::~Win32WaveOutOutputImpl()
 {
 	PROFILE();
 
@@ -176,10 +217,8 @@ Win32WaveOutOutput::~Win32WaveOutOutput()
 }
 
 
-int Win32WaveOutOutput::Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits16, int freq )
+int Win32WaveOutOutputImpl::Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits16, int freq )
 {
-	SoundOutput::Init(maxActiveSounds, mixSizeMs, stereo, bits16, freq);
-
 	MMRESULT err;
 	WAVEFORMATEX wfx;
 	wfx.nSamplesPerSec = freq;
@@ -219,11 +258,15 @@ int Win32WaveOutOutput::Init(int maxActiveSounds, int mixSizeMs, bool stereo, bo
 	m_waveFreeBlockCount = 0;
 	m_waveCurrentBlock   = 0;
 	volatile bool started=false;
-	m_workerThread.swap(::cz::thread(RunWorkerThread, ::cz::ref(started), this) );
-	m_workerThread._setpriority(THREADPRIORITY_HIGHEST);
+	m_workerThread = std::thread(RunWorkerThread, std::ref(started), this);
+	bool res = SetThreadPriority(m_workerThread.native_handle(), THREAD_PRIORITY_HIGHEST);
+
 	// wait until it starts
 	while(!started)
-		::cz::this_thread::sleep_ms(1);
+	{
+		Sleep(1);
+	}
+
 	CZLOG(LOG_INFO, "workerTread started...\n");
 
 	/* Open the default wave device */
@@ -239,10 +282,9 @@ int Win32WaveOutOutput::Init(int maxActiveSounds, int mixSizeMs, bool stereo, bo
 
 	m_numFramesInBlock = m_waveBlockSize / wfx.nBlockAlign;
 	// Init the mixer stuff in the parent class
-	int ret = InitSoftwareMixerOutput(maxActiveSounds, m_numFramesInBlock, stereo, bits16, freq);
+	int ret = m_outer->InitSoftwareMixerOutput(maxActiveSounds, m_numFramesInBlock, stereo, bits16, freq);
 	if (ret!=ERR_OK) CZERROR(ret);
 
-	
 	for(int i = 0; i < CZWIN32WAVEOUT_BLOCK_COUNT; i++)
 	{
 		WAVEHDR* current = &m_waveBlocks[i];
@@ -262,19 +304,61 @@ int Win32WaveOutOutput::Init(int maxActiveSounds, int mixSizeMs, bool stereo, bo
 
 	waveOutRestart(m_hWaveOut);
 
-	::cz::this_thread::sleep_ms(1000);
+	Sleep(500);
 	return ERR_OK;
 }
 
 
-void Win32WaveOutOutput::PauseOutput(bool freeResources)
+void Win32WaveOutOutputImpl::PauseOutput(bool freeResources)
 {
 	waveOutPause(m_hWaveOut);
 }
 
-void Win32WaveOutOutput::ResumeOutput()
+void Win32WaveOutOutputImpl::ResumeOutput()
 {
 	waveOutRestart(m_hWaveOut);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Win32WaveOutOutputImpl
+//////////////////////////////////////////////////////////////////////////
+
+
+Win32WaveOutOutput::Win32WaveOutOutput(::cz::Core *parentObject)
+	: SoundOutput(parentObject)
+{
+	m_impl = CZNEW(Win32WaveOutOutputImpl)(this);
+}
+
+Win32WaveOutOutput::~Win32WaveOutOutput()
+{
+	CZDELETE(m_impl);
+}
+
+int Win32WaveOutOutput::Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits16, int freq )
+{
+	SoundOutput::Init(maxActiveSounds, mixSizeMs, stereo, bits16, freq);
+	return m_impl->Init(maxActiveSounds, mixSizeMs, stereo, bits16, freq);
+}
+
+void Win32WaveOutOutput::PauseOutput(bool freeResources)
+{
+	m_impl->PauseOutput(freeResources);
+}
+
+void Win32WaveOutOutput::ResumeOutput(void)
+{
+	m_impl->ResumeOutput();
+}
+
+void Win32WaveOutOutput::LockMixer()
+{
+	m_impl->LockMixer();
+}
+
+void Win32WaveOutOutput::UnlockMixer()
+{
+	m_impl->UnlockMixer();
 }
 
 } // namespace audio

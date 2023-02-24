@@ -47,7 +47,7 @@ namespace audio
 		SoundBufferType m_type;
 		int m_numChannels;
 		int m_numFrames;
-		u8* m_allocatedPtr; // Pointer to the memory we allocated
+		uint8_t* m_allocatedPtr; // Pointer to the memory we allocated
 	};
 
 	//! Structure that represents a request for audio data from an AudioSource interface

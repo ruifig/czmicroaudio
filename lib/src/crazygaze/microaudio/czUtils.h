@@ -13,19 +13,19 @@ namespace cz
 {
 namespace audio
 {
-	static u16 ByteSwap16(u16 n)
+	static uint16_t ByteSwap16(uint16_t n)
 	{
-		return (  ((((u16) n) << 8) & 0xFF00) | \
-			((((u16) n) >> 8) & 0x00FF) );
+		return (  ((((uint16_t) n) << 8) & 0xFF00) | \
+			((((uint16_t) n) >> 8) & 0x00FF) );
 	}
 
 
-	static u32 ByteSwap32(u32 n)
+	static uint32_t ByteSwap32(uint32_t n)
 	{
-		return (  ((((u32) n) << 24) & 0xFF000000) | \
-			((((u32) n) << 8) & 0x00FF0000)  | \
-			((((u32) n) >> 8) & 0x0000FF00)  | \
-			((((u32) n) >> 24) & 0x000000FF) );
+		return (  ((((uint32_t) n) << 24) & 0xFF000000) | \
+			((((uint32_t) n) << 8) & 0x00FF0000)  | \
+			((((uint32_t) n) >> 8) & 0x0000FF00)  | \
+			((((uint32_t) n) >> 24) & 0x000000FF) );
 	}
 
 } // namespace audio

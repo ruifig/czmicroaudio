@@ -371,7 +371,7 @@ public:
 	 * \return ERR_OK on success, other on error.
 	 * \sa \link Play \endlink \link PlayModule \endlink \link PlayStream \endlink
 	 */
-	virtual int SetVolume(HSOUND sndHandle, u8 vol) = 0;
+	virtual int SetVolume(HSOUND sndHandle, uint8_t vol) = 0;
 
 	/*!
 	 * \brief Changes the frequency on a currently playing sound
@@ -392,7 +392,7 @@ public:
 	 * \warning This doesn't work when called on song handles
 	 * \sa \link Play \endlink \link PlayModule \endlink \link PlayStream \endlink
 	 */
-	virtual int SetPanning(HSOUND sndHandle, u8 pan) = 0;
+	virtual int SetPanning(HSOUND sndHandle, uint8_t pan) = 0;
 
 	/*!
 	 * \brief Pauses a currently playing sound

@@ -43,29 +43,11 @@ Since this is a macro, be careful with the data types you use with it.
 
 #include "czPlayer.h"
 
-// Include specific platform OS headers
-#if CZ_PLATFORM==CZ_PLATFORM_SYMBIAN
-	#include <E32Base.h>
-	#ifndef UIQ_BUILD
-	#include <AknUtils.h>
-	#endif
-	#include <e32svr.h>
-	#include <MdaAudioOutputStream.h>
-	#include <mda\common\audio.h>
-#endif
-
 #if CZ_PLAYER_IT_ENABLED
-	
-	#if CZ_PLATFORM==CZ_PLATFORM_SYMBIAN
-		#define TInt64_Lsr(v,bits) v.Lsr(bits)
-		#define TInt64_GetTInt(v) v.GetTInt()
-	#elif CZ_PLATFORM==CZ_PLATFORM_WIN32
-		typedef __int64 TInt64;
-		#define TInt64_Lsr(v,bits) v>>=bits
-		#define TInt64_GetTInt(v) int(v)
-	#endif
+	typedef __int64 TInt64;
+	#define TInt64_Lsr(v,bits) v>>=bits
+	#define TInt64_GetTInt(v) int(v)
 #endif
-
 
 //
 // Parent object to use for macros to access the core. A macro its used, so I can redefine it whenever needed, and change the way to access in any place
@@ -80,8 +62,6 @@ Since this is a macro, be careful with the data types you use with it.
 #else
 	#define CZLOG (void)sizeof
 #endif
-
-
 
 
 //
@@ -102,7 +82,6 @@ Since this is a macro, be careful with the data types you use with it.
 	#define CZNEW(CZOBJECTTYPE) new(COREOBJ) CZOBJECTTYPE
 	#define CZDELETE(CZOBJECT) delete CZOBJECT
 #endif // CZ_DEBUG
-
 
 
 //
@@ -210,3 +189,4 @@ inline void operator delete( void* ptr, void*, const char*, int, const char*, et
 #define CZUNUSED(argname) /* argname */
 
 #endif
+

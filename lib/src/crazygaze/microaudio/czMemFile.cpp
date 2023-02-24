@@ -29,7 +29,7 @@ MemFile::~MemFile()
 	Close();	
 }
 
-int MemFile::Open(u8 *ptr, int size, bool transferOwnership)
+int MemFile::Open(uint8_t *ptr, int size, bool transferOwnership)
 {
 	m_memPtr = ptr;
 	m_size = size;

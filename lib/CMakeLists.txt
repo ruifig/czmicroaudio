@@ -1,6 +1,15 @@
 set(SOURCE_FILES
 	"library.json"
 	"LICENSE"
+
+	"src/crazygaze/microaudio/globals/czITModuleTables.h"
+	"src/crazygaze/microaudio/globals/czMODConsts.h"
+	"src/crazygaze/microaudio/globals/czMODModuleTables.h"
+
+	"src/crazygaze/microaudio/win32/czWin32WaveOutOutput.cpp"
+	"src/crazygaze/microaudio/win32/czWin32WaveOutOutput.h"
+	"src/crazygaze/microaudio/win32/waveOutErrorCodes.txt"
+
 	"src/crazygaze/microaudio/czAll.h"
 	"src/crazygaze/microaudio/czAudio.cpp"
 	"src/crazygaze/microaudio/czAudio.h"
@@ -42,14 +51,17 @@ set(SOURCE_FILES
 	"src/crazygaze/microaudio/czUtils.h"
 	"src/crazygaze/microaudio/czWAVLoader.cpp"
 	"src/crazygaze/microaudio/czWAVLoader.h"
-	"src/crazygaze/microaudio/Foo.cpp"
-	"src/crazygaze/microaudio/Foo.h"
+
 )
 
 #source_group("crazygaze\\czmicroaudio" FILES ${SOURCE_FILES})
 add_library(czmicroaudio STATIC ${SOURCE_FILES})
 target_include_directories(czmicroaudio PUBLIC "./src")
-# target_link_libraries(czmicroaudio somelibraries)
+if (MSVC)
+	#target_link_libraries(czmicroaudio PRIVATE Shlwapi Winmm Iphlpapi.lib)
+	target_link_libraries(czmicroaudio PRIVATE Winmm)
+endif()
+
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
 
 add_subdirectory(./examples)

@@ -16,12 +16,12 @@
 #include <stdlib.h>
 
 // Define assert
-#if (CZ_PLATFORM==CZ_PLATFORM_WIN32) || (CZ_PLATFORM==CZ_PLATFORM_SYMBIAN)
+#if CZ_PLATFORM_WIN32
 	#include <assert.h>
 #endif
 
 // string functions
-#if (CZ_PLATFORM==CZ_PLATFORM_WIN32) || (CZ_PLATFORM==CZ_PLATFORM_SYMBIAN)
+#if CZ_PLATFORM_WIN32
 	#include <string.h>
 #endif
 
@@ -33,7 +33,7 @@
 
 
 // Math
-#if (CZ_PLATFORM==CZ_PLATFORM_WIN32) || (CZ_PLATFORM==CZ_PLATFORM_SYMBIAN)
+#if CZ_PLATFORM_WIN32
 	#include <math.h>
 #endif
 

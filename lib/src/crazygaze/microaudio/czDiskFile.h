@@ -39,11 +39,11 @@ public:
 
 private:
 
-#if CZ_PLATFORM==CZ_PLATFORM_SYMBIAN
-	RFs m_fs;
-	RFile m_file;
-#else
+#if CZ_PLATFORM_WIN32
 	FILE* m_file;
+#else
+	// Throw an error to force me to revise this for new platforms
+	#error Unknown or unsupported platform
 #endif
 
 };

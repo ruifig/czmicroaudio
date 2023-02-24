@@ -32,7 +32,7 @@ namespace cz
 	 * \todo This needs to be fixed for some platforms.
 	 */
 
-	s32 GetMicroseconds();
+	int32_t GetMicroseconds();
 
 	/*!
 	 * \brief Core creation configuration
@@ -89,19 +89,19 @@ namespace cz
 	//
 	const char* const * errorStrings;
 	// data for IT support
-	const u8* IT_pantable;
-	const u8* IT_SlideTable;
-	const s8* IT_FineSineData;
-	const s8* IT_FineRampDownData;
-	const s8* IT_FineSquareWave;
-	const u32* IT_PitchTable;
-	const u32* IT_FineLinearSlideUpTable;
-	const u32* IT_LinearSlideUpTable;
-	const u16* IT_FineLinearSlideDownTable;
-	const u16* IT_LinearSlideDownTable;
+	const uint8_t* IT_pantable;
+	const uint8_t* IT_SlideTable;
+	const int8_t* IT_FineSineData;
+	const int8_t* IT_FineRampDownData;
+	const int8_t* IT_FineSquareWave;
+	const uint32_t* IT_PitchTable;
+	const uint32_t* IT_FineLinearSlideUpTable;
+	const uint32_t* IT_LinearSlideUpTable;
+	const uint16_t* IT_FineLinearSlideDownTable;
+	const uint16_t* IT_LinearSlideDownTable;
 	// data for MOD support
-	const s16* MOD_periods;
-	const s8* MOD_waveFormsPtrs[4];
+	const int16_t* MOD_periods;
+	const int8_t* MOD_waveFormsPtrs[4];
 
 	private:
 		MemoryProvider* m_memoryProvider;

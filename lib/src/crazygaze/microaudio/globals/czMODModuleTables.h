@@ -13,7 +13,7 @@ namespace cz
 {
 	namespace audio
 	{
-		const s16 g_MOD_periods[MOD_NUMPERIODS] = {
+		const int16_t g_MOD_periods[MOD_NUMPERIODS] = {
 			1814,1801,1788,1775,1762,1749,1737,1724,
 			1712,1700,1687,1675,1663,1651,1639,1628, // C-3
 			1616,1604,1593,1581,1570,1559,1547,1536, // C#3
@@ -89,7 +89,7 @@ namespace cz
 		};
 		*/
 
-		const s8 g_MOD_sineWave[MOD_NUMWAVEFORMINDEXES] =
+		const int8_t g_MOD_sineWave[MOD_NUMWAVEFORMINDEXES] =
 		{
 			0,12,25,37,49,60,71,81,90,98,106,112,117,122,125,126,
 			127,126,125,122,117,112,106,98,90,81,71,60,49,37,25,12,
@@ -97,7 +97,7 @@ namespace cz
 			-127,-126,-125,-122,-117,-112,-106,-98,-90,-81,-71,-60,-49,-37,-25,-12
 		};
 
-		const s8 g_MOD_rampdownWave[MOD_NUMWAVEFORMINDEXES] =
+		const int8_t g_MOD_rampdownWave[MOD_NUMWAVEFORMINDEXES] =
 		{
 			0,-4,-8,-12,-16,-20,-24,-28,-32,-36,-40,-44,-48,-52,-56,-60,
 			-64,-68,-72,-76,-80,-84,-88,-92,-96,-100,-104,-108,-112,-116,-120,-124,
@@ -105,7 +105,7 @@ namespace cz
 			63,59,55,51,47,43,39,35,31,27,23,19,15,11,7,3
 		};
 
-		const s8 g_MOD_squareWave[MOD_NUMWAVEFORMINDEXES] =
+		const int8_t g_MOD_squareWave[MOD_NUMWAVEFORMINDEXES] =
 		{
 			127,127,127,127,127,127,127,127,127,127,127,127,127,127,127,127,
 			127,127,127,127,127,127,127,127,127,127,127,127,127,127,127,127,
@@ -113,7 +113,7 @@ namespace cz
 			-127,-127,-127,-127,-127,-127,-127,-127,-127,-127,-127,-127,-127,-127,-127,-127
 		};
 
-		const s8 g_MOD_randomWave[MOD_NUMWAVEFORMINDEXES] =
+		const int8_t g_MOD_randomWave[MOD_NUMWAVEFORMINDEXES] =
 		{
 			98,-127,-43,88,102,41,-65,-94,125,20,-71,-86,-70,-32,-16,-96,
 			17,72,107,-5,116,-69,-62,-40,10,-61,65,109,-18,-38,-13,-76,
@@ -121,7 +121,7 @@ namespace cz
 			42,-34,89,-4,-51,-72,21,-29,112,123,84,-101,-92,98,-54,-95
 		};
 
-		//const s8* const g_waveFormsPtrs[4]= {g_sineWave, g_rampdownWave, g_squareWave, g_randomWave};
+		//const int8_t* const g_waveFormsPtrs[4]= {g_sineWave, g_rampdownWave, g_squareWave, g_randomWave};
 
 	}
 }

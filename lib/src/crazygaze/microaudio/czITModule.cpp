@@ -43,7 +43,7 @@ namespace audio
 // Multiply an unsigned FixedPoint by an unsigned Integer, and return an integer
 // Or
 // Multiply a unsigned fixed by a unsigned fixed, and return a unsigned fixed
-inline unsigned int fixed_X_int(u32 p1,u32 p2)
+inline unsigned int fixed_X_int(uint32_t p1,uint32_t p2)
 {
 	TInt64 v(TInt64(p1)*TInt64(p2));
 	TInt64_Lsr(v,16);
@@ -75,8 +75,8 @@ inline fixed16_16 FDIV16_16(fixed16_16 a, fixed16_16 b){
 }
 
 // Mophun 18.14 fixed point
-typedef s32 fixed32_t;
-fixed32_t vPow(fixed32_t val, u8 exp){
+typedef int32_t fixed32_t;
+fixed32_t vPow(fixed32_t val, uint8_t exp){
 	if (exp==0) {
 		return (1<<14);
 	} else if (exp==1){
@@ -120,7 +120,7 @@ int ITModule::FeedData(void *ptr, int bytes)
 	int len=(bytes*8)/m_samplesize;
 	int todo=len;
 	int part,pos=0;
-	u8 *mx=(u8 *)ptr;
+	uint8_t *mx=(uint8_t *)ptr;
 
 	int FREQUENCY = m_mixer->GetMixFrequency();
 
@@ -456,7 +456,7 @@ int ITModule::ReadSamples(::cz::io::File *in)
 			wv = waves[i];
 		
 			// Used when decompressing a ADPCM sample
-			s8 *uncompressedData=NULL;
+			int8_t *uncompressedData=NULL;
 		
 			// Move to the sample data position first, because ADPCM format needs to read data
 			if((err=in->Seek(smp->SmpPtr, ::cz::io::FILE_SEEK_START))!=ERR_OK)
@@ -482,7 +482,7 @@ int ITModule::ReadSamples(::cz::io::File *in)
 					{
 						CZLOG(LOG_INFO, "Reading 4-Bit ADPCM.\n");
 						format |= SOUND_8BITS|SOUND_SIGNED;					
-						s8 compressionTable[16];
+						int8_t compressionTable[16];
 						int adpcmLen = (smp->Length + 1) / 2;
 						// Read compression table at the beginning of sample
 						if((err=in->ReadData(compressionTable,16))!=ERR_OK)
@@ -490,28 +490,28 @@ int ITModule::ReadSamples(::cz::io::File *in)
 							
 						// Allocate memory to uncompressed the sample
 						// add 1 extra byte, because odd lengths will need 1 extra byte
-						uncompressedData = (s8*) CZALLOC(sizeof(s8)*(smp->Length+1));
+						uncompressedData = (int8_t*) CZALLOC(sizeof(int8_t)*(smp->Length+1));
 						if (uncompressedData==NULL) CZERROR(ERR_NOMEM);
 						// Allocate memory to read compressed data from file, to speed things up
-						u8 *compressedData = (u8*) CZALLOC(sizeof(u8)*adpcmLen);
+						uint8_t *compressedData = (uint8_t*) CZALLOC(sizeof(uint8_t)*adpcmLen);
 						if (compressedData==NULL) CZERROR(ERR_NOMEM);
 					
-						s8 *sptr = uncompressedData;
-						u8 *compressedPtr = compressedData;
-						s8 delta = 0;
+						int8_t *sptr = uncompressedData;
+						uint8_t *compressedPtr = compressedData;
+						int8_t delta = 0;
 						//CZLOG("Bytes to read from file = %d\n", adpcmLen);
 						// Read the compressed data into the temporary buffer
 						if((err=in->ReadData(compressedData,adpcmLen))!=ERR_OK)
 							goto ERROR_EXIT;					
-						for (s32 j=0; j<adpcmLen; j++)
+						for (int32_t j=0; j<adpcmLen; j++)
 						{
-							u8 s = *compressedPtr;
+							uint8_t s = *compressedPtr;
 							compressedPtr++;
-							u8 b0 = s & 0x0F;
-							u8 b1 = s  >> 4;
-							delta = (s8)(delta + compressionTable[b0]);
+							uint8_t b0 = s & 0x0F;
+							uint8_t b1 = s  >> 4;
+							delta = (int8_t)(delta + compressionTable[b0]);
 							sptr[0] = delta;
-							delta = (s8)(delta + compressionTable[b1]);
+							delta = (int8_t)(delta + compressionTable[b1]);
 							sptr[1] = delta;
 							sptr += 2;
 						}
@@ -658,7 +658,7 @@ int ITModule::ReadPatterns(::cz::io::File *in)
 	CZERROR(err);
 }
 
-int ITModule::Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, u8 volume){
+int ITModule::Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, uint8_t volume){
 
 	PROFILE();
 
@@ -1501,7 +1501,7 @@ void ITModule::ProcessEffects(int channel)
 	nybble2=dat&0x0F;
 	note=trk->note;
 	
-	u8 *ptr_mem;
+	uint8_t *ptr_mem;
 	trk->isvibrato=0;
 	trk->istremor=0;
 	trk->isarpeggio=0;
@@ -1746,7 +1746,7 @@ void ITModule::DoVolEffects(TRACK *trk)
 	VIRTUALCHANNEL *vc=NULL;
 	unsigned char dat=0,temp;
 	if (trk->active) vc=&virtualchannels[trk->vchannel];
-	u8 *ptr_mem;
+	uint8_t *ptr_mem;
 	
 	int effect=trk->voleffect,eff=255;
 	if(!trk->isvoleffect) return;
@@ -2128,7 +2128,7 @@ void ITModule::PrepareOutput(int ch)
 	if(InstrumentMode){
 		// Fixed point here is 18.14, because the vPow function
 		/*
-		u8 exp=FIXTOI16_16(vc->PitEnv.val_);
+		uint8_t exp=FIXTOI16_16(vc->PitEnv.val_);
 
 		// define as Mophun fixed32_t types, to use with Mophun's vPow function
 		//#define HALFsemitone_forward 1.029302237
@@ -2248,7 +2248,7 @@ void ITModule::UpdateEnvelope(IT_ENVELOPE *env, ENVCONTROL *ctrl)
  * keyon = 1 - sustain state
  * keyon = 0 - sustain off (note off command)
  */
-void ITModule::PrepareEnvelope(u8 keyon,IT_ENVELOPE *env, ENVCONTROL *ctrl)
+void ITModule::PrepareEnvelope(uint8_t keyon,IT_ENVELOPE *env, ENVCONTROL *ctrl)
 {
 	PROFILE();
 	DATACHECK;
@@ -2309,7 +2309,7 @@ void ITModule::PrepareEnvelope(u8 keyon,IT_ENVELOPE *env, ENVCONTROL *ctrl)
 	
 }
 
-void ITModule::PrepareEnvelopes(u8 keyon, VIRTUALCHANNEL *vc)
+void ITModule::PrepareEnvelopes(uint8_t keyon, VIRTUALCHANNEL *vc)
 {
     PrepareEnvelope(keyon, &vc->inst->VolEnv, &vc->VolEnv);
     PrepareEnvelope(keyon, &vc->inst->PanEnv, &vc->PanEnv);
@@ -2579,7 +2579,7 @@ void ITModule::PrepareNote(int channel)
 	
 	IT_NOTE *n=&rowinfo[channel];
 	TRACK *trk=&track[channel];
-	u8 kick=0;
+	uint8_t kick=0;
 	
 	if(n->isnote)
 		{
@@ -2701,7 +2701,7 @@ void ITModule::DoTick(void)
 		RowCounter=1;
 
         // do loopback if necessary
-		u8 loopback=0,loopbackrow=0;
+		uint8_t loopback=0,loopbackrow=0;
 		int ch;
 		for (ch=0;ch<it_channels;ch++){
 			if (track[ch].loopback){
@@ -2849,7 +2849,7 @@ int ITModule::GetSpeed(void)
 }
 
 
-int ITModule::SetMasterVolume(u8 vol){
+int ITModule::SetMasterVolume(uint8_t vol){
 	m_masterVolume = vol;
 	for (int i=0;i<m_numVirtualChannels;i++){
 		if (virtualchannels[i].active) m_mixer->SetMasterVolume(vol, i, 1);
@@ -2864,9 +2864,9 @@ int ITModule::Forward(void)
 	
 	if(!IsPlaying) CZERROR(ERR_CANTRUN);
 	
-	u8 dopause=IsPaused;
+	uint8_t dopause=IsPaused;
 	if (dopause) Pause();
-	u8 mvol=m_mixer->GetMasterVolume(0);
+	uint8_t mvol=m_mixer->GetMasterVolume(0);
 	m_mixer->SetMasterVolume(0,0,SoundCardChannelsUsed);
 	while(1){
 		ENTER_CRITICAL;
@@ -2890,7 +2890,7 @@ int ITModule::Backward(void)
 	
 	if(!IsPlaying) CZERROR(ERR_CANTRUN);
 
-	u8 dopause=IsPaused;
+	uint8_t dopause=IsPaused;
 	if (dopause) Pause();
 
 	ENTER_CRITICAL;

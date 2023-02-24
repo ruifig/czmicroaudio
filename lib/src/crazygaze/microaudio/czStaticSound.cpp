@@ -70,11 +70,11 @@ int StaticSound::SetDefaults(int freq, int vol, int pan)
 	}
 	if (vol!=-1){
 		if (!INRANGE(vol, 0, AUDIO_VOL_MAX)) CZERROR(ERR_INVPAR);
-		m_vol = (u8)vol;
+		m_vol = (uint8_t)vol;
 	}
 	if (pan!=-1){
 		if (!INRANGE(pan, AUDIO_PAN_LEFT, AUDIO_PAN_RIGHT)) CZERROR(ERR_INVPAR);
-		m_pan = (u8)pan;
+		m_pan = (uint8_t)pan;
 	}
 	return ERR_OK;
 }
@@ -130,12 +130,12 @@ int StaticSound::Set(int form, int frames)
 	}
 
 	int safetyAreaBytes = (SOUND_SAFETYAREA*m_framesize)/8;
-	m_allocatedSize = sizeof(u8) * (m_length+(safetyAreaBytes*2)); 
-	m_startptr = (u8*) CZALLOC(m_allocatedSize);
+	m_allocatedSize = sizeof(uint8_t) * (m_length+(safetyAreaBytes*2)); 
+	m_startptr = (uint8_t*) CZALLOC(m_allocatedSize);
 	if (m_startptr==NULL){
 		CZERROR(ERR_NOMEM);
 	}	
-	m_dptr = (u8*)m_startptr + safetyAreaBytes;
+	m_dptr = (uint8_t*)m_startptr + safetyAreaBytes;
 	SetToSilence();
 //	m_format |= CZSND_OK;
 	m_loopStart = 0;
@@ -155,8 +155,8 @@ void StaticSound::SmoothLoop(void)
 	int frameSizeBytes = m_framesize/8;
 
 	// Expand the start
-	u8 *dest  = m_dptr - 1*frameSizeBytes;
-	u8 *src   = m_dptr + 1*frameSizeBytes;
+	uint8_t *dest  = m_dptr - 1*frameSizeBytes;
+	uint8_t *src   = m_dptr + 1*frameSizeBytes;
 	for (i=0; i<framesToCopy;i++){
 		memcpy(dest, src, frameSizeBytes);
 		dest -= frameSizeBytes;
