@@ -54,6 +54,9 @@ struct Framework : public cz::AudioLogger, public cz::MemoryProvider
 
 void setup()
 {
+	while(!kbhit())
+	{
+	}
 }
 
 void loop()
@@ -69,18 +72,14 @@ void loop()
 	// Load sounds
 	cz::microaudio::HSOUNDDATA hAmbientLoopData = player->LoadWAV("../media/554_bebeto_Ambient_loop_mono_11025.wav");
 	cz::microaudio::HSOUNDDATA hWaterDropData = player->LoadWAV("../media/30341_junggle_waterdrop24_44100.wav");
+	cz::microaudio::HMODULEDATA hTestSong = player->LoadModule("../media/TESTSONG.it");
+	//cz::microaudio::HMODULEDATA hTestSong = player->LoadModule("../media/educationally_valuable.mod");
 	
-	// Set ambient sound loop to all
-	//player->SetSoundDefaultLoop(hAmbientLoopData, cz::microaudio::AUDIO_LOOP_NORMAL);
-	// Change the default volume for the ambient loop to a lot lower, so we can hear the water drop more clearly
-	//player->SetSoundDefaults(hAmbientLoopData,-1,cz::microaudio::AUDIO_VOL_MAX/4);
-
-	cz::microaudio::HSOUND hAmbientLoop=0; // Used to keep control of the ambient sound
-
 	// Play the looped sounds. You could have saved the return value to later control the playing sound
-	player->Play(hAmbientLoopData, -1, -1, cz::microaudio::SOUND_LOOP_NORMAL);
+	//player->Play(hAmbientLoopData, cz::microaudio::AUDIO_MASTERVOL_MAX, -1, cz::microaudio::SOUND_LOOP_OFF);
 
 	printf("1   - Play water drop (More presses will play the sound repeatedly)\n");
+	printf("2   - Play module\n");
 	printf("ESC - Exit.\n");
 	char key=0;
 	do 
@@ -92,6 +91,8 @@ void loop()
 			// We're using the water drop as "play and forget", so we don't need to keep track of the returned handlers
 			if (key=='1')
 				player->Play(hWaterDropData);
+			if (key=='2')
+				player->PlayModule(hTestSong, 128);
 		}
 	} while(key!=27);
 
@@ -99,6 +100,7 @@ void loop()
 	// Released the loaded sound data
 	player->FreeStaticSound(hAmbientLoopData);
 	player->FreeStaticSound(hWaterDropData);
+	player->FreeModuleSound(hTestSong);
 
 	// Destroy in inverse order
 	player->Destroy();

@@ -97,10 +97,10 @@ namespace cz
 	#define CZ_PLAYER_LOG_ENABLED 1 /**< @hideinitializer Set this to 0 or 1 to disable/enable logging*/
 #else
 	#ifndef CZ_PLAYER_LOG_ENABLED
-		#if CZ_USER_BUILD
-			#define CZ_PLAYER_LOG_ENABLED 0
-		#else
+		#if CZ_DEBUG
 			#define CZ_PLAYER_LOG_ENABLED 1
+		#else
+			#define CZ_PLAYER_LOG_ENABLED 0
 		#endif
 	#endif
 #endif

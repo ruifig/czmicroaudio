@@ -127,7 +127,7 @@ public:
 	virtual int GetOutputChannels(void);
 	virtual int GetOutputBits(void);
 	virtual HSOUND Play(HSOUNDDATA sndDataHandle, int vol=-1, int pan=-1, LoopMode loopMode= SOUND_LOOP_OFF, int loopStart=0, int loopLength=0);
-	virtual HSOUND PlayModule(HMODULEDATA modDataHandle, int masterVol=AUDIO_MASTERVOL_DEFAULT, bool loop=false, int firstOrder=0, int lastOrder=-1);
+	virtual HSOUND PlayModule(HMODULEDATA modDataHandle, int masterVol=AUDIO_VOL_MAX/2, bool loop=false, int firstOrder=0, int lastOrder=-1);
 	virtual HSOUND PlayStream(HSTREAMDATA sndDataHandle, int vol=AUDIO_VOL_MAX/2, bool loop=false);
 	virtual int Stop(HSOUND sndHandle);
 	virtual int StopAll(void);

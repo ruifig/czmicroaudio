@@ -11,7 +11,6 @@
 #include "czStandardC.h"
 #include "czPlayerPrivateDefs.h"
 
-#include "globals/czITModuleTables.h"
 #include "globals/czMODModuleTables.h"
 
 namespace cz
@@ -107,18 +106,6 @@ void Core::InitGlobalPointers()
 	//	char **g = g_czErrors;
 
 	errorStrings = g_czErrors;
-
-	// Tables for IT support
-	IT_pantable = microaudio::g_IT_pantable;
-	IT_SlideTable = microaudio::g_IT_SlideTable;
-	IT_FineSineData = microaudio::g_IT_FineSineData;
-	IT_FineRampDownData = microaudio::g_IT_FineRampDownData;
-	IT_FineSquareWave = microaudio::g_IT_FineSquareWave;
-	IT_PitchTable = (const uint32_t*)microaudio::g_IT_PTable;
-	IT_FineLinearSlideUpTable = (const uint32_t*) microaudio::g_IT_FLSUTable;
-	IT_LinearSlideUpTable = (const uint32_t*) microaudio::g_IT_LSUTable;
-	IT_FineLinearSlideDownTable = microaudio::g_IT_FLSDTable;
-	IT_LinearSlideDownTable = microaudio::g_IT_LSDTable;
 
 	// Tables for MOD support
 	MOD_periods = microaudio::g_MOD_periods;

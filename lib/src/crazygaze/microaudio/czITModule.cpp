@@ -39,6 +39,226 @@ namespace cz
 namespace microaudio
 {
 
+namespace
+{
+	const uint8_t g_IT_pantable[16]={0,4,9,13,17,21,26,30,34,38,43,47,51,55,60,64};
+	const uint8_t g_IT_SlideTable[9]={1,4,8,16,32,64,96,128,255};
+
+	//FineSineData       Label   Byte
+	const int8_t g_IT_FineSineData[256] = {
+		0,  2,  3,  5,  6,  8,  9, 11, 12, 14, 16, 17, 19, 20, 22, 23,
+		24, 26, 27, 29, 30, 32, 33, 34, 36, 37, 38, 39, 41, 42, 43, 44,
+		45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 56, 57, 58, 59,
+		59, 60, 60, 61, 61, 62, 62, 62, 63, 63, 63, 64, 64, 64, 64, 64,
+		64, 64, 64, 64, 64, 64, 63, 63, 63, 62, 62, 62, 61, 61, 60, 60,
+		59, 59, 58, 57, 56, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46,
+		45, 44, 43, 42, 41, 39, 38, 37, 36, 34, 33, 32, 30, 29, 27, 26,
+		24, 23, 22, 20, 19, 17, 16, 14, 12, 11,  9,  8,  6,  5,  3,  2,
+		0, -2, -3, -5, -6, -8, -9,-11,-12,-14,-16,-17,-19,-20,-22,-23,
+		-24,-26,-27,-29,-30,-32,-33,-34,-36,-37,-38,-39,-41,-42,-43,-44,
+		-45,-46,-47,-48,-49,-50,-51,-52,-53,-54,-55,-56,-56,-57,-58,-59,
+		-59,-60,-60,-61,-61,-62,-62,-62,-63,-63,-63,-64,-64,-64,-64,-64,
+		-64,-64,-64,-64,-64,-64,-63,-63,-63,-62,-62,-62,-61,-61,-60,-60,
+		-59,-59,-58,-57,-56,-56,-55,-54,-53,-52,-51,-50,-49,-48,-47,-46,
+		-45,-44,-43,-42,-41,-39,-38,-37,-36,-34,-33,-32,-30,-29,-27,-26,
+		-24,-23,-22,-20,-19,-17,-16,-14,-12,-11, -9, -8, -6, -5, -3, -2
+	};
+
+	//FineRampDownData   Label   Byte
+	const int8_t g_IT_FineRampDownData[256] = {
+		64, 63, 63, 62, 62, 61, 61, 60, 60, 59, 59, 58, 58, 57, 57, 56,
+		56, 55, 55, 54, 54, 53, 53, 52, 52, 51, 51, 50, 50, 49, 49, 48,
+		48, 47, 47, 46, 46, 45, 45, 44, 44, 43, 43, 42, 42, 41, 41, 40,
+		40, 39, 39, 38, 38, 37, 37, 36, 36, 35, 35, 34, 34, 33, 33, 32,
+		32, 31, 31, 30, 30, 29, 29, 28, 28, 27, 27, 26, 26, 25, 25, 24,
+		24, 23, 23, 22, 22, 21, 21, 20, 20, 19, 19, 18, 18, 17, 17, 16,
+		16, 15, 15, 14, 14, 13, 13, 12, 12, 11, 11, 10, 10,  9,  9,  8,
+		8,  7,  7,  6,  6,  5,  5,  4,  4,  3,  3,  2,  2,  1,  1,  0,
+		0, -1, -1, -2, -2, -3, -3, -4, -4, -5, -5, -6, -6, -7, -7, -8,
+		-8, -9, -9,-10,-10,-11,-11,-12,-12,-13,-13,-14,-14,-15,-15,-16,
+		-16,-17,-17,-18,-18,-19,-19,-20,-20,-21,-21,-22,-22,-23,-23,-24,
+		-24,-25,-25,-26,-26,-27,-27,-28,-28,-29,-29,-30,-30,-31,-31,-32,
+		-32,-33,-33,-34,-34,-35,-35,-36,-36,-37,-37,-38,-38,-39,-39,-40,
+		-40,-41,-41,-42,-42,-43,-43,-44,-44,-45,-45,-46,-46,-47,-47,-48,
+		-48,-49,-49,-50,-50,-51,-51,-52,-52,-53,-53,-54,-54,-55,-55,-56,
+		-56,-57,-57,-58,-58,-59,-59,-60,-60,-61,-61,-62,-62,-63,-63,-64
+	};
+
+	//FineSquareWave     Label   Byte
+	//        DB      128 Dup (64), 128 Dup (0)
+	const int8_t g_IT_FineSquareWave[256] = {
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0,
+		64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0, 64, 0
+	};
+
+	static union
+	{
+		// Values as 16.16 fixed point. This should NOT be used directly. Use the other union member.
+		const uint16_t g_IT_PitchTable_DO_NOT_USE[240] = {
+			2048, 0,   2170, 0,   2299, 0,   2435, 0,   2580, 0,   2734, 0,  // C-0
+			2896, 0,   3069, 0,   3251, 0,   3444, 0,   3649, 0,   3866, 0,
+			4096, 0,   4340, 0,   4598, 0,   4871, 0,   5161, 0,   5468, 0,  // C-1
+			5793, 0,   6137, 0,   6502, 0,   6889, 0,   7298, 0,   7732, 0,
+			8192, 0,   8679, 0,   9195, 0,   9742, 0,   10321, 0,  10935, 0, // C-2
+			11585, 0,  12274, 0,  13004, 0,  13777, 0,  14596, 0,  15464, 0,
+			16384, 0,  17358, 0,  18390, 0,  19484, 0,  20643, 0,  21870, 0, // C-3
+			23170, 0,  24548, 0,  26008, 0,  27554, 0,  29193, 0,  30929, 0,
+			32768, 0,  34716, 0,  36781, 0,  38968, 0,  41285, 0,  43740, 0, // C-4
+			46341, 0,  49097, 0,  52016, 0,  55109, 0,  58386, 0,  61858, 0,
+			0, 1,      3897, 1,   8026, 1,   12400, 1,  17034, 1,  21944, 1, // C-5
+			27146, 1,  32657, 1,  38496, 1,  44682, 1,  51236, 1,  58179, 1,
+			0, 2,      7794, 2,   16051, 2,  24800, 2,  34068, 2,  43888, 2, // C-6
+			54292, 2,  65314, 2,  11456, 3,  23828, 3,  36936, 3,  50823, 3,
+			0, 4,      15588, 4,  32103, 4,  49600, 4,  2601, 5,   22240, 5, // C-7
+			43048, 5,  65092, 5,  22912, 6,  47656, 6,  8336, 7,   36110, 7,
+			0, 8,      31176, 8,  64205, 8,  33663, 9,  5201, 10,  44481, 10,// C-8
+			20559, 11, 64648, 11, 45823, 12, 29776, 13, 16671, 14, 6684, 15,
+			0, 16,     62352, 16, 62875, 17, 1790,  19, 10403, 20, 23425, 21,// C-9
+			41118, 22, 63761, 23, 26111, 25, 59552, 26, 33342, 28, 13368, 30
+		};
+		const uint32_t g_IT_PitchTable[120];
+		static_assert(sizeof(g_IT_PitchTable_DO_NOT_USE) == sizeof(g_IT_PitchTable));
+	};
+
+
+	static union
+	{
+		// Values as 16.16 fixed point. This should NOT be used directly. Use the other union member.
+		const uint16_t g_IT_FineLinearSlideUpTable_DO_NOT_USE[32] = {
+			0, 1,     59, 1,    118, 1,   178, 1,   237, 1,  // 0->4
+			296, 1,   356, 1,   415, 1,   475, 1,   535, 1,  // 5->9
+			594, 1,   654, 1,   714, 1,   773, 1,   833, 1,  // 10->14
+			893, 1                                           // 15
+		};
+
+		const uint32_t g_IT_FineLinearSlideUpTable[16];
+		static_assert(sizeof(g_IT_FineLinearSlideUpTable_DO_NOT_USE) == sizeof(g_IT_FineLinearSlideUpTable));
+	};
+
+	static union
+	{
+		// Value = 2^(Val/192)
+		// Values as 16.16 fixed point. This should NOT be used directly. Use the other union member.
+		const uint16_t g_IT_LinearSlideUpTable_DO_NOT_USE[514] = {
+			0,     1, 237,   1, 475,   1, 714,   1, 953,  1, // 0->4
+			1194,  1, 1435,  1, 1677,  1, 1920,  1, 2164, 1, // 5->9
+			2409,  1, 2655,  1, 2902,  1, 3149,  1, 3397, 1, // 10->14
+			3647,  1, 3897,  1, 4148,  1, 4400,  1, 4653, 1, // 15->19
+			4907,  1, 5157,  1, 5417,  1, 5674,  1, 5932, 1, // 20->24
+			6190,  1, 6449,  1, 6710,  1, 6971,  1, 7233, 1, // 25->29
+			7496,  1, 7761,  1, 8026,  1, 8292,  1, 8559, 1, // 30->34
+			8027,  1, 9096,  1, 9366,  1, 9636,  1, 9908, 1, // 35->39
+			10181, 1, 10455, 1, 10730, 1, 11006, 1, 11283,1, // 40->44
+			11560, 1, 11839, 1, 12119, 1, 12400, 1, 12682,1, // 45->49
+			12965, 1, 13249, 1, 13533, 1, 13819, 1, 14106,1, // 50->54
+			14394, 1, 14684, 1, 14974, 1, 15265, 1, 15557,1, // 55->59
+			15850, 1, 16145, 1, 16440, 1, 16737, 1, 17034,1, // 60->64
+			17333, 1, 17633, 1, 17933, 1, 18235, 1, 18538,1, // 65->69
+			18842, 1, 19147, 1, 19454, 1, 19761, 1, 20070,1, // 70->74
+			20379, 1, 20690, 1, 21002, 1, 21315, 1, 21629,1, // 75->79
+			21944, 1, 22260, 1, 22578, 1, 22897, 1, 23216,1, // 80->84
+			23537, 1, 23860, 1, 24183, 1, 24507, 1, 24833,1, // 85->89
+			25160, 1, 25488, 1, 25817, 1, 26148, 1, 26479,1, // 90->94
+			26812, 1, 27146, 1, 27481, 1, 27818, 1, 28155,1, // 95->99
+			28494, 1, 28834, 1, 29175, 1, 29518, 1, 29862,1, // 100->104
+			30207, 1, 30553, 1, 30900, 1, 31248, 1, 31599,1, // 105->109
+			31951, 1, 32303, 1, 32657, 1, 33012, 1, 33369,1, // 110->114
+			33726, 1, 34085, 1, 34446, 1, 34807, 1, 35170,1, // 115->119
+			35534, 1, 35900, 1, 36267, 1, 36635, 1, 37004,1, // 120->124
+			37375, 1, 37747, 1, 38121, 1, 38496, 1, 38872,1, // 125->129
+			39250, 1, 39629, 1, 40009, 1, 40391, 1, 40774,1, // 130->134
+			41158, 1, 41544, 1, 41932, 1, 42320, 1, 42710,1, // 135->139
+			43102, 1, 43495, 1, 43889, 1, 44285, 1, 44682,1, // 140->144
+			45081, 1, 45481, 1, 45882, 1, 46285, 1, 46690,1, // 145->149
+			47095, 1, 47503, 1, 47917, 1, 48322, 1, 48734,1, // 150->154
+			49147, 1, 49562, 1, 49978, 1, 50396, 1, 50815,1, // 155->159
+			51236, 1, 51658, 1, 52082, 1, 52507, 1, 52934,1, // 160->164
+			53363, 1, 53793, 1, 54224, 1, 54658, 1, 55092,1, // 165->169
+			55529, 1, 55966, 1, 56406, 1, 56847, 1, 57289,1, // 170->174
+			57734, 1, 58179, 1, 58627, 1, 59076, 1, 59527,1, // 175->179
+			59979, 1, 60433, 1, 60889, 1, 61346, 1, 61805,1, // 180->184
+			62265, 1, 62727, 1, 63191, 1, 63657, 1, 64124,1, // 185->189
+			64593, 1, 65064, 1, 0,     2, 474,   2, 950,  2, // 190->194
+			1427,  2, 1906,  2, 2387,  2, 2870,  2, 3355, 2, // 195->199
+			3841,  2, 4327,  2, 4818,  2, 5310,  2, 5803, 2, // 200->204
+			6298,  2, 6795,  2, 7294,  2, 7794,  2, 8296, 2, // 205->209
+			8800,  2, 9306,  2, 9814,  2, 10323, 2, 10835,2, // 210->214
+			11348, 2, 11863, 2, 12380, 2, 12899, 2, 13419,2, // 215->219
+			13942, 2, 14467, 2, 14993, 2, 15521, 2, 16051,2, // 220->224
+			16583, 2, 17117, 2, 17653, 2, 18191, 2, 18731,2, // 225->229
+			19273, 2, 19817, 2, 20362, 2, 20910, 2, 21460,2, // 230->234
+			22011, 2, 22565, 2, 23121, 2, 23678, 2, 24238,2, // 235->239
+			24800, 2, 25363, 2, 25929, 2, 25497, 2, 27067,2, // 240->244
+			27639, 2, 28213, 2, 28789, 2, 29367, 2, 29947,2, // 245->249
+			30530, 2, 31114, 2, 31701, 2, 32289, 2, 32880, 2,// 250->254
+			33473, 2, 34068, 2                               // 255->256
+		};
+
+		const uint32_t g_IT_LinearSlideUpTable[257];
+		static_assert(sizeof(g_IT_LinearSlideUpTable_DO_NOT_USE) == sizeof(g_IT_LinearSlideUpTable));
+	};
+
+	// Values as 16.16 fixed point. This should NOT be used directly. Use the other union member.
+	const uint16_t g_IT_FineLinearSlideDownTable[16] = {
+		65535, 65477, 65418, 65359, 65300, 65241, 65182, 65359, //0->7
+		65065, 65006, 64947, 64888, 64830, 64772, 64713, 64645, //8->15
+	};
+
+	// Values as 16.16 fixed point. This should NOT be used directly. Use the other union member.
+	const uint16_t g_IT_LinearSlideDownTable[257] = {
+		65535, 65300, 65065, 64830, 64596, 64364, 64132, 63901,  // 0->7
+		63670, 63441, 63212, 62984, 62757, 62531, 62306, 62081,  // 8->15
+		61858, 61635, 61413, 61191, 60971, 60751, 60532, 60314,  // 16->23
+		60097, 59880, 59664, 59449, 59235, 59022, 58809, 58597,  // 24->31
+		58386, 58176, 57966, 57757, 57549, 57341, 57135, 56929,  // 32->39
+		56724, 56519, 56316, 56113, 55911, 55709, 55508, 55308,  // 40->47
+		55109, 54910, 54713, 54515, 54319, 54123, 53928, 53734,  // 48->55
+		53540, 53347, 53155, 52963, 52773, 52582, 52393, 52204,  // 56->63
+		52016, 51829, 51642, 51456, 51270, 51085, 50901, 50718,  // 64->71
+		50535, 50353, 50172, 49991, 49811, 49631, 49452, 49274,  // 72->79
+		49097, 48920, 48743, 48568, 48393, 48128, 48044, 47871,  // 80->87
+		47699, 47527, 47356, 47185, 47015, 46846, 46677, 46509,  // 88->95
+		46341, 46174, 46008, 45842, 45677, 45512, 45348, 45185,  // 96->103
+		45022, 44859, 44698, 44537, 44376, 44216, 44057, 43898,  //104->111
+		43740, 43582, 43425, 43269, 43113, 42958, 42803, 42649,  //112->119
+		42495, 42342, 42189, 42037, 41886, 41735, 41584, 41434,  //120->127
+		41285, 41136, 40988, 40840, 40639, 40566, 40400, 40253,  //128->135
+		40110, 39965, 39821, 39678, 39535, 39392, 39250, 39109,  //136->143
+		38968, 38828, 38688, 38548, 38409, 38271, 38133, 37996,  //144->151
+		37859, 37722, 37586, 37451, 37316, 37181, 37047, 36914,  //152->159
+		36781, 36648, 36516, 36385, 36254, 36123, 35993, 35863,  //160->167
+		35734, 35605, 35477, 35349, 35221, 35095, 34968, 34842,  //168->175
+		34716, 34591, 34467, 34343, 34219, 34095, 33973, 33850,  //176->183
+		33728, 33607, 33486, 33365, 33245, 33125, 33005, 32887,  //184->191
+		32768, 32650, 32532, 32415, 32298, 32182, 32066, 31950,  //192->199
+		31835, 31720, 31606, 31492, 31379, 31266, 31153, 31041,  //200->207
+		30929, 30817, 30706, 30596, 30485, 30376, 30226, 30157,  //208->215
+		30048, 29940, 29832, 29725, 29618, 29511, 29405, 29299,  //216->223
+		29193, 29088, 28983, 28879, 28774, 28671, 28567, 28464,  //224->231
+		28362, 28260, 28158, 28056, 27955, 27855, 27754, 27654,  //232->239
+		27554, 27455, 27356, 27258, 27159, 27062, 26964, 26867,  //240->247
+		26770, 26674, 26577, 26482, 26386, 26291, 26196, 26102,  //248->255
+		26008                                                    // 256
+	};
+
+}
+
+
+
 
 // Multiply an unsigned FixedPoint by an unsigned Integer, and return an integer
 // Or
@@ -52,18 +272,6 @@ inline unsigned int fixed_X_int(uint32_t p1,uint32_t p2)
 	return ret;
 }
 
-/*
-int AmigaFreqSlide(int oldFreq, int targetFreq, int dat)
-{
-	const k=7093789.2f;
-	float f = oldFreq;
-	float d = (targetFreq<oldFreq) ? dat : -dat;	
-	float nf = k / ((k/(f*2) + d)*2);
-	return (int) nf;
-}
-*/
-
-
 inline fixed16_16 FMUL16_16(fixed16_16 a, fixed16_16 b){
 	TInt64 v ( (TInt64(a) * TInt64(b)) );
 	TInt64_Lsr(v,16);
@@ -72,19 +280,6 @@ inline fixed16_16 FMUL16_16(fixed16_16 a, fixed16_16 b){
 inline fixed16_16 FDIV16_16(fixed16_16 a, fixed16_16 b){
 	TInt64 v( (TInt64(a) * TInt64(65536)) / TInt64(b));
 	return (fixed16_16) TInt64_GetTInt(v);
-}
-
-// Mophun 18.14 fixed point
-typedef int32_t fixed32_t;
-fixed32_t vPow(fixed32_t val, uint8_t exp){
-	if (exp==0) {
-		return (1<<14);
-	} else if (exp==1){
-		return val;
-	} else {
-		float ret = pow(float(val)/(2^Mixer::FREQFRACBITS), float(exp) );
-		return (fixed32_t) (ret*(2^Mixer::FREQFRACBITS)) ;
-	}
 }
 
 /*
@@ -762,19 +957,67 @@ NO_INSTRUMENTS_TO_READ:
 		else GxxComp=0;
 				
 
-	// Count channels
-	it_channels=0;
-	for (it_channels=0;it_channels<64;it_channels++)
+
+	// The proper way to detect how many channels we have is to analyze pattern data
 	{
-		if(it_channels==64) break;
-        if ((it_header.ChnlPan[it_channels]>100)&&(it_header.ChnlPan[it_channels]!=255)){
-            CZLOG(LOG_INFO, "ERROR: IT file has surround channels, or disabled channels.\n");
-			//User::Panic(_L("Unsupported channel types"), 3);
-			exit(EXIT_FAILURE);
-        }
-        if (it_header.ChnlPan[it_channels]==255) break;
+		it_channels = 64;
+		IT_CHANNEL_LAST_INFO tmpChInfo[64];
+		ChLastInfo = tmpChInfo;
+
+		IT_NOTE tmpRowInfo[64];
+		rowinfo = tmpRowInfo;
+
+		int topChannelWithData = 0;
+
+		//memset(channelHasData, 0, sizeof(channelHasData));
+		for(int patnum = 0; patnum<it_header.PatNum; patnum++)
+		{
+			if (patterns[patnum].Length==0)
+				continue;
+
+			int packPos = 0;
+			for(int row=0; row<patterns[patnum].Rows; row++)
+			{
+				packPos = GetITRow(patnum, packPos);
+				if (packPos==0)
+				{
+					CZLOG(LOG_INFO, "ERROR: Error decoding pattern data");
+					exit(EXIT_FAILURE);
+				}
+			}
+
+			for(int ch=0; ch<64; ch++)
+			{
+				if (
+					ChLastInfo[ch].lastmask ||
+					ChLastInfo[ch].lastnote ||
+					ChLastInfo[ch].lastinstrument ||
+					ChLastInfo[ch].lastvolpan ||
+					ChLastInfo[ch].lastcommand ||
+					ChLastInfo[ch].lastcommanddata)
+				{
+					if (ch>topChannelWithData)
+					{
+						topChannelWithData = ch;
+					}
+					//channelHasData[ch] = true;
+				}
+			}
+		}
+		ChLastInfo = nullptr;
+		rowinfo = nullptr;
+		it_channels = topChannelWithData + 1;
 	}
 	CZLOG(LOG_INFO, "CHANNELS=%d\n", it_channels);
+
+	for (int ch = 0; ch < it_channels; ch++)
+	{
+		if ((it_header.ChnlPan[ch] > 100) && (it_header.ChnlPan[ch] != 255)) {
+			CZLOG(LOG_INFO, "ERROR: IT file has surround channels, or disabled channels.\n");
+			//User::Panic(_L("Unsupported channel types"), 3);
+			exit(EXIT_FAILURE);
+		}
+	}
 
 	// Alloc arrays of size [it_channels]
 	ChLastInfo = (IT_CHANNEL_LAST_INFO*) CZALLOC(sizeof(IT_CHANNEL_LAST_INFO)*it_channels);	
@@ -1213,17 +1456,17 @@ void ITModule::DoPitchSlideDown(TRACK *trk,unsigned char dat)
 		case 0xF: // test for EFx (fine pitch slide down)
 			if(!FirstTick) break;
 			vc->NoteFreq=fixed_X_int(vc->NoteFreq,
-				              (unsigned int)m_core->IT_LinearSlideDownTable[nybble2]);
+				              (unsigned int)g_IT_LinearSlideDownTable[nybble2]);
 			break;
 		case 0xE: // test for EEx (extra fine pitch slide down)
 			if(!FirstTick) break;
 			vc->NoteFreq=fixed_X_int(vc->NoteFreq,
-			                      (unsigned int)m_core->IT_FineLinearSlideDownTable[nybble2]);
+			                      (unsigned int)g_IT_FineLinearSlideDownTable[nybble2]);
 			break;
 		default :
 			if(FirstTick) break;
 			vc->NoteFreq=fixed_X_int(vc->NoteFreq,
-									(unsigned int)m_core->IT_LinearSlideDownTable[dat]);
+									(unsigned int)g_IT_LinearSlideDownTable[dat]);
 			break;
 		}
 }
@@ -1243,17 +1486,17 @@ void ITModule::DoPitchSlideUp(TRACK *trk,unsigned char dat)
 		case 0xF: // test for FFx (fine pitch slide up)
 			if(!FirstTick) break;
 			vc->NoteFreq=fixed_X_int(vc->NoteFreq,
-				              (unsigned int)m_core->IT_LinearSlideUpTable[nybble2]);
+				              (unsigned int)g_IT_LinearSlideUpTable[nybble2]);
 			break;
 		case 0xE: // test for FEx (extra fine pitch slide up)
 			if(!FirstTick) break;
 			vc->NoteFreq=fixed_X_int(vc->NoteFreq,
-			                      (unsigned int)m_core->IT_FineLinearSlideUpTable[nybble2]);
+			                      (unsigned int)g_IT_FineLinearSlideUpTable[nybble2]);
 			break;
 		default:
 			if(FirstTick) break;
 			vc->NoteFreq=fixed_X_int(vc->NoteFreq,
-			                      (unsigned int)m_core->IT_LinearSlideUpTable[dat]);
+			                      (unsigned int)g_IT_LinearSlideUpTable[dat]);
 			break;
 		}
 }
@@ -1279,13 +1522,13 @@ void ITModule::DoVibrato(TRACK *trk, unsigned char dat,unsigned char finevibrato
 	index=trk->vibpos&0xFF;	
 	switch(trk->vibratowaveform){
 		case 0:
-			index=(int)m_core->IT_FineSineData[index];
+			index=(int)g_IT_FineSineData[index];
 			break;
 		case 1:
-			index=(int)m_core->IT_FineRampDownData[index];
+			index=(int)g_IT_FineRampDownData[index];
 			break;
 		case 2:
-			index=(int)m_core->IT_FineSquareWave[index];
+			index=(int)g_IT_FineSquareWave[index];
 			break;
 		}
 
@@ -1299,12 +1542,12 @@ void ITModule::DoVibrato(TRACK *trk, unsigned char dat,unsigned char finevibrato
 // this one gets the frequency multipler 2^(Val/192)
 
 	if(index>=0){		
-		trk->VibFreqMul=fixed_X_int((unsigned int)m_core->IT_LinearSlideUpTable[slide],
-				(unsigned int)m_core->IT_FineLinearSlideUpTable[fine]);
+		trk->VibFreqMul=fixed_X_int((unsigned int)g_IT_LinearSlideUpTable[slide],
+				(unsigned int)g_IT_FineLinearSlideUpTable[fine]);
 		}
 		else{
-		trk->VibFreqMul=fixed_X_int((unsigned int)m_core->IT_LinearSlideDownTable[slide],
-				(unsigned int)m_core->IT_FineLinearSlideDownTable[fine]);
+		trk->VibFreqMul=fixed_X_int((unsigned int)g_IT_LinearSlideDownTable[slide],
+				(unsigned int)g_IT_FineLinearSlideDownTable[fine]);
 		}		
 }
 
@@ -1323,12 +1566,12 @@ void ITModule::DoTonePortamento(TRACK *trk, unsigned char dat)
 
 	if(freq < targetfreq)
 	{ // slide up
-		vc->NoteFreq=fixed_X_int(freq,m_core->IT_LinearSlideUpTable[dat]);
+		vc->NoteFreq=fixed_X_int(freq,g_IT_LinearSlideUpTable[dat]);
 		if(vc->NoteFreq>targetfreq) vc->NoteFreq=targetfreq;
 	}
 	else // slide down
 	{
-		vc->NoteFreq=fixed_X_int(freq,m_core->IT_LinearSlideDownTable[dat]);
+		vc->NoteFreq=fixed_X_int(freq,g_IT_LinearSlideDownTable[dat]);
 		if(vc->NoteFreq<targetfreq) vc->NoteFreq=targetfreq;
 	}
 }		
@@ -1377,7 +1620,7 @@ void ITModule::DoArpeggio(TRACK *trk, unsigned char dat)
 		default: count=0;
 		}
 		
-		trk->ArpeggioMul=m_core->IT_PitchTable[12*5+count];
+		trk->ArpeggioMul=g_IT_PitchTable[12*5+count];
 
 	trk->arpeggiocount++;
 	if(trk->arpeggiocount>=3) trk->arpeggiocount=0;
@@ -1440,13 +1683,13 @@ void ITModule::DoTremolo(TRACK *trk,unsigned char dat)
 	index=(trk->trempos)&0xFF;	
 	switch(trk->tremolowaveform){
 		case 0:
-			value=(int)m_core->IT_FineSineData[index];
+			value=(int)g_IT_FineSineData[index];
 			break;
 		case 1:
-			value=(int)m_core->IT_FineRampDownData[index];
+			value=(int)g_IT_FineRampDownData[index];
 			break;
 		case 2:
-			value=(int)m_core->IT_FineSquareWave[index];
+			value=(int)g_IT_FineSquareWave[index];
 			break;
 		}
 
@@ -1469,13 +1712,13 @@ void ITModule::DoPanbrello(TRACK *trk,unsigned char dat)
 	index=trk->panbrellopos;
 	switch(trk->panbrellowaveform){
 		case 0:
-			value=(int)m_core->IT_FineSineData[index];
+			value=(int)g_IT_FineSineData[index];
 			break;
 		case 1:
-			value=(int)m_core->IT_FineRampDownData[index];
+			value=(int)g_IT_FineRampDownData[index];
 			break;
 		case 2:
-			value=(int)m_core->IT_FineSquareWave[index];
+			value=(int)g_IT_FineSquareWave[index];
 			break;
 		}
 
@@ -1887,7 +2130,7 @@ void ITModule::DoExtendedEffect(int channel,TRACK *trk,unsigned char nybble1, un
 			break;
 		case 8:
 			if(!FirstTick) break;
-			trk->ChannelPan=m_core->IT_pantable[nybble2];
+			trk->ChannelPan=g_IT_pantable[nybble2];
 			if(trk->active)
 				trk->NotePan=trk->ChannelPan;
 			break;
@@ -1968,13 +2211,13 @@ unsigned int ITModule::DoSampleVibrato(VIRTUALCHANNEL *vc)
 	index=vc->samplevibpos&0xFF;	
 	switch(vc->smp->ViT){
 		case 0:
-			index=(int)m_core->IT_FineSineData[index];
+			index=(int)g_IT_FineSineData[index];
 			break;
 		case 1:
-			index=(int)m_core->IT_FineRampDownData[index];
+			index=(int)g_IT_FineRampDownData[index];
 			break;
 		case 2:
-			index=(int)m_core->IT_FineSquareWave[index];
+			index=(int)g_IT_FineSquareWave[index];
 			break;
 		}
 
@@ -1991,12 +2234,12 @@ unsigned int ITModule::DoSampleVibrato(VIRTUALCHANNEL *vc)
 // this one gets the frequency multipler 2^(Val/192)
 
 	if(index>=0){		
-		return fixed_X_int((unsigned int)m_core->IT_LinearSlideUpTable[slide],
-				(unsigned int)m_core->IT_FineLinearSlideUpTable[fine]);
+		return fixed_X_int((unsigned int)g_IT_LinearSlideUpTable[slide],
+				(unsigned int)g_IT_FineLinearSlideUpTable[fine]);
 		}
 		else{
-		return fixed_X_int((unsigned int)m_core->IT_LinearSlideDownTable[slide],
-				(unsigned int)m_core->IT_FineLinearSlideDownTable[fine]);
+		return fixed_X_int((unsigned int)g_IT_LinearSlideDownTable[slide],
+				(unsigned int)g_IT_FineLinearSlideDownTable[fine]);
 		}		
 }
 
@@ -2126,21 +2369,6 @@ void ITModule::PrepareOutput(int ch)
 
 	// CALCULATE FINAL FREQUENCY
 	if(InstrumentMode){
-		// Fixed point here is 18.14, because the vPow function
-		/*
-		uint8_t exp=FIXTOI16_16(vc->PitEnv.val_);
-
-		// define as Mophun fixed32_t types, to use with Mophun's vPow function
-		//#define HALFsemitone_forward 1.029302237
-		fixed32_t HALFsemitone_forward  = (fixed32_t)((1.029302237f) * 16384);
-
-		fixed32_t mul=vPow(HALFsemitone_forward, exp);
-		//vc->FinalFreq = vFTOI((int64_t)vc->FinalFreq*(int64_t)mul);
-		TInt64 v(TInt64(vc->FinalFreq) * TInt64(mul) );
-		TInt64_Lsr(v,14);
-		vc->FinalFreq = TInt64_GetTInt(v);
-		*/
-		
 		#define HALFsemitone_forward 1.029302237f
 		float exp = float(vc->PitEnv.val_) / (1<<16);
 		float mul = pow(float(HALFsemitone_forward), exp );
@@ -2413,7 +2641,7 @@ void ITModule::KickNote(int channel)
 
     trk->kick=0;
 
-    int newfreq=fixed_X_int(smp->C5Speed,m_core->IT_PitchTable[trk->realnote]);
+    int newfreq=fixed_X_int(smp->C5Speed,g_IT_PitchTable[trk->realnote]);
 
     trk->istoneportamento=0;
     if((trk->active)&&((trk->effect=='G'-64)||(trk->effect=='L'-64)))
@@ -2570,7 +2798,6 @@ void ITModule::KickNote(int channel)
 
     m_mixer->SetSample(vch,wv,begin,end,repeat,loopmode);   
 }
-
 
 void ITModule::PrepareNote(int channel)
 {
@@ -2856,69 +3083,6 @@ int ITModule::SetMasterVolume(uint8_t vol){
 	}
 	return ERR_OK;
 }
-
-/*
-int ITModule::Forward(void)
-{
-	PROFILE();	
-	
-	if(!IsPlaying) CZERROR(ERR_CANTRUN);
-	
-	uint8_t dopause=IsPaused;
-	if (dopause) Pause();
-	uint8_t mvol=m_mixer->GetMasterVolume(0);
-	m_mixer->SetMasterVolume(0,0,SoundCardChannelsUsed);
-	while(1){
-		ENTER_CRITICAL;
-		this->DoTick();
-		LEAVE_CRITICAL;
-		if((PatternEnd)||(m_reachedEnd))
-		{
-			PatternEnd=0;
-			break;
-		}
-	}	
-	m_mixer->SetMasterVolume(mvol,0,SoundCardChannelsUsed);
-
-	if (dopause) Pause();
-	return ERR_OK;
-}
-
-int ITModule::Backward(void)
-{
-	PROFILE();
-	
-	if(!IsPlaying) CZERROR(ERR_CANTRUN);
-
-	uint8_t dopause=IsPaused;
-	if (dopause) Pause();
-
-	ENTER_CRITICAL;
-	if((ProcessRow<=NumberOfRows/4)&&(ProcessOrder>0)) ProcessOrder--;
-	for (int count=0;count<SoundCardChannelsUsed;count++){
-		m_mixer->SetVoiceStatus(count,0);
-	}
-
-	ProcessRow=-1;
-	TickCounter=1;
-	RowCounter=1;
-	CurrentPattern=Orders[ProcessOrder];
-	NumberOfRows=patterns[CurrentPattern].Rows;
-	BreakRow=0;
-	CurrentRow=0;
-	FirstTick=0;
-	NextPackPos=0;
-	PatternDelay=0;
-	PatternEnd=0;
-
-	this->DoTick();
-	LEAVE_CRITICAL;
-
-	if (dopause) Pause();
-	
-	return ERR_OK;
-}
-*/
 
 #endif // CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
 

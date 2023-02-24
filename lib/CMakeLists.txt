@@ -2,7 +2,6 @@ set(SOURCE_FILES
 	"library.json"
 	"LICENSE"
 
-	"src/crazygaze/microaudio/globals/czITModuleTables.h"
 	"src/crazygaze/microaudio/globals/czMODConsts.h"
 	"src/crazygaze/microaudio/globals/czMODModuleTables.h"
 

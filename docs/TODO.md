@@ -7,6 +7,13 @@
 * Remove cz::io namespace (e.g: DiskFile should move to cz::microaudio or czmicromuc library
 * Port Tremor support
 * Use #pragma once instead of #ifdefs on all headers
+* Rename all globals in a consistent way. Maybe all as g_XXX
+* Use a fixed point class so we have more flexibility on picking maximum sample sizes, etc.
+* Add support for TI sample compression
+    * E.g: https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
+    * One sample I have that uses sample compression: EYE.it
+* Look for "exit(EXIT_FAILURE)" calls and do something appropriate
+* Volumes passed to samples and modules seem to be in different ranges.
 
 
 # NOTES FOR DOCUMENTATION

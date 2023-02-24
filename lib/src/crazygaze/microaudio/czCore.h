@@ -88,17 +88,6 @@ namespace cz
 	// can't access global pointers in the sound callback
 	//
 	const char* const * errorStrings;
-	// data for IT support
-	const uint8_t* IT_pantable;
-	const uint8_t* IT_SlideTable;
-	const int8_t* IT_FineSineData;
-	const int8_t* IT_FineRampDownData;
-	const int8_t* IT_FineSquareWave;
-	const uint32_t* IT_PitchTable;
-	const uint32_t* IT_FineLinearSlideUpTable;
-	const uint32_t* IT_LinearSlideUpTable;
-	const uint16_t* IT_FineLinearSlideDownTable;
-	const uint16_t* IT_LinearSlideDownTable;
 	// data for MOD support
 	const int16_t* MOD_periods;
 	const int8_t* MOD_waveFormsPtrs[4];
