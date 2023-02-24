@@ -2,9 +2,6 @@ set(SOURCE_FILES
 	"library.json"
 	"LICENSE"
 
-	"src/crazygaze/microaudio/globals/czMODConsts.h"
-	"src/crazygaze/microaudio/globals/czMODModuleTables.h"
-
 	"src/crazygaze/microaudio/win32/czWin32WaveOutOutput.cpp"
 	"src/crazygaze/microaudio/win32/czWin32WaveOutOutput.h"
 	"src/crazygaze/microaudio/win32/waveOutErrorCodes.txt"

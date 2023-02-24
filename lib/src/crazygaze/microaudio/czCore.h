@@ -82,16 +82,6 @@ namespace cz
 		void OnLog(LogLevel level, const char *fmt, ...);
 #endif
 
-	//
-	// :TODO: - Internal stuff. Don't mess with it. I'll have to get a better design for this
-	// This is used to access global data needed in the mixer thread, because PALM
-	// can't access global pointers in the sound callback
-	//
-	const char* const * errorStrings;
-	// data for MOD support
-	const int16_t* MOD_periods;
-	const int8_t* MOD_waveFormsPtrs[4];
-
 	private:
 		MemoryProvider* m_memoryProvider;
 		AudioLogger* m_logger;

@@ -29,9 +29,14 @@ namespace cz
 namespace microaudio
 {
 
-
 // forward declarations
 class StaticSound;
+
+enum
+{
+	MOD_NUMPERIODS = 488,
+	MOD_NUMWAVEFORMINDEXES = 64
+};
 
 enum 
 {

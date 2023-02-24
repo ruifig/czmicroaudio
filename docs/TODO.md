@@ -14,6 +14,7 @@
     * One sample I have that uses sample compression: EYE.it
 * Look for "exit(EXIT_FAILURE)" calls and do something appropriate
 * Volumes passed to samples and modules seem to be in different ranges.
+* Use strong typed enums
 
 
 # NOTES FOR DOCUMENTATION

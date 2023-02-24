@@ -11,8 +11,6 @@
 #include "czStandardC.h"
 #include "czPlayerPrivateDefs.h"
 
-#include "globals/czMODModuleTables.h"
-
 namespace cz
 {
 
@@ -79,7 +77,7 @@ void Core::OnError(int errorType)
 const char *Core::GetErrorMsg(int err)
 {
 	if((err>-1)||(err<ERR_UNKNOWN)) return NULL;
-	return (char*) errorStrings[-err-1];
+	return (char*) g_czErrors[-err-1];
 }
 
 
@@ -103,17 +101,13 @@ void Core::OnLog(LogLevel level, const char *fmt, ...)
 
 void Core::InitGlobalPointers()
 {
-	//	char **g = g_czErrors;
-
-	errorStrings = g_czErrors;
-
 	// Tables for MOD support
-	MOD_periods = microaudio::g_MOD_periods;
+	/*
 	MOD_waveFormsPtrs[0]= microaudio::g_MOD_sineWave;
 	MOD_waveFormsPtrs[1]= microaudio::g_MOD_rampdownWave;
 	MOD_waveFormsPtrs[2]= microaudio::g_MOD_squareWave;
 	MOD_waveFormsPtrs[3]= microaudio::g_MOD_randomWave;
-
+	*/
 }
 
 

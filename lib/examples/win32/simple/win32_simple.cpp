@@ -54,9 +54,11 @@ struct Framework : public cz::AudioLogger, public cz::MemoryProvider
 
 void setup()
 {
+#if 0
 	while(!kbhit())
 	{
 	}
+#endif
 }
 
 void loop()
@@ -72,14 +74,15 @@ void loop()
 	// Load sounds
 	cz::microaudio::HSOUNDDATA hAmbientLoopData = player->LoadWAV("../media/554_bebeto_Ambient_loop_mono_11025.wav");
 	cz::microaudio::HSOUNDDATA hWaterDropData = player->LoadWAV("../media/30341_junggle_waterdrop24_44100.wav");
-	cz::microaudio::HMODULEDATA hTestSong = player->LoadModule("../media/TESTSONG.it");
-	//cz::microaudio::HMODULEDATA hTestSong = player->LoadModule("../media/educationally_valuable.mod");
+	cz::microaudio::HMODULEDATA hTestMOD = player->LoadModule("../media/educationally_valuable.mod");
+	cz::microaudio::HMODULEDATA hTestIT = player->LoadModule("../media/TESTSONG.it");
 	
 	// Play the looped sounds. You could have saved the return value to later control the playing sound
 	//player->Play(hAmbientLoopData, cz::microaudio::AUDIO_MASTERVOL_MAX, -1, cz::microaudio::SOUND_LOOP_OFF);
 
 	printf("1   - Play water drop (More presses will play the sound repeatedly)\n");
-	printf("2   - Play module\n");
+	printf("2   - Play MOD module\n");
+	printf("3   - Play IT module\n");
 	printf("ESC - Exit.\n");
 	char key=0;
 	do 
@@ -92,15 +95,17 @@ void loop()
 			if (key=='1')
 				player->Play(hWaterDropData);
 			if (key=='2')
-				player->PlayModule(hTestSong, 128);
+				player->PlayModule(hTestMOD, 128);
+			if (key=='3')
+				player->PlayModule(hTestIT, 128);
 		}
 	} while(key!=27);
-
 
 	// Released the loaded sound data
 	player->FreeStaticSound(hAmbientLoopData);
 	player->FreeStaticSound(hWaterDropData);
-	player->FreeModuleSound(hTestSong);
+	player->FreeModuleSound(hTestMOD);
+	player->FreeModuleSound(hTestIT);
 
 	// Destroy in inverse order
 	player->Destroy();
