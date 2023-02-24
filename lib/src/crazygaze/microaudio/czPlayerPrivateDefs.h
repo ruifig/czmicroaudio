@@ -70,15 +70,11 @@ Since this is a macro, be careful with the data types you use with it.
 #if CZ_DEBUG
 	#define CZALLOC(size) COREOBJ->AllocMem(size,  __FILE__, __LINE__)
 	#define CZFREE(ptr) COREOBJ->FreeMem(ptr, __FILE__, __LINE__)
-	#define CZNATIVEALLOC(size) ::cz::AllocNativeMem(size,  __FILE__, __LINE__)
-	#define CZNATIVEFREE(ptr) ::cz::FreeNativeMem(ptr, __FILE__, __LINE__)
 	#define CZNEW(CZOBJECTTYPE) new(COREOBJ, __FILE__, __LINE__) CZOBJECTTYPE
 	#define CZDELETE(CZOBJECT) delete CZOBJECT
 #else
 	#define CZALLOC(size) COREOBJ->AllocMem(size)
 	#define CZFREE(ptr) COREOBJ->FreeMem(ptr)
-	#define CZNATIVEALLOC(size) ::cz::NativeAllocMem(size)
-	#define CZNATIVEFREE(ptr) ::cz::FreeNativeMem(ptr)
 	#define CZNEW(CZOBJECTTYPE) new(COREOBJ) CZOBJECTTYPE
 	#define CZDELETE(CZOBJECT) delete CZOBJECT
 #endif // CZ_DEBUG
