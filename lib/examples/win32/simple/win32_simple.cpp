@@ -9,10 +9,10 @@ To make thing even more clean, it doesn't even checks for errors.
 
 ===============================================================================================*/
 
-#include <Arduino.h>
+#include <crazygaze/microaudio/All.h>
+#include <crazygaze/microaudio/Logger.h>
 
-#include "crazygaze/microaudio/czAll.h"
-#include "crazygaze/microaudio/czLogger.h"
+#include <Arduino.h>
 #include <Windows.h>
 #include <conio.h>
 
