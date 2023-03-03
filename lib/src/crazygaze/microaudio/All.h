@@ -20,8 +20,6 @@ namespace cz
 }
 
 #include <crazygaze/microaudio/Player.h>
-#include <crazygaze/microaudio/Logger.h>
-#include <crazygaze/microaudio/MemoryProvider.h>
 #include <crazygaze/microaudio/Core.h>
 #include <crazygaze/microaudio/Audio.h>
 #include <crazygaze/microaudio/AudioPlayer.h>

@@ -10,49 +10,42 @@ To make thing even more clean, it doesn't even checks for errors.
 ===============================================================================================*/
 
 #include <crazygaze/microaudio/All.h>
-#include <crazygaze/microaudio/Logger.h>
 
 #include <Arduino.h>
 #include <Windows.h>
 #include <conio.h>
-#include <crazygaze/microaudio/MemoryTracker.h>
-#include <crazygaze/microaudio/LinkedList.h>
-#include <crazygaze/microaudio/Memory.h>
 
-struct Framework : public cz::AudioLogger, public cz::MemoryProvider
+
+using namespace cz::microaudio;
+
+struct MyCore : public Core
 {
+
 	// These are for the Logger interface
-	virtual void OnError(int errorCode) override
+	virtual void onError(Error errorCode) override
 	{
-		Serial.print("ERROR: "); Serial.print(errorCode); Serial.print(":"); Serial.println(cz::GetErrorMsg(errorCode));
+		Serial.print("ERROR: "); Serial.print(errorCode); Serial.print(":"); Serial.println(GetErrorMsg(errorCode));
 	}
 
-	virtual void OnLog(cz::LogLevel level, const char *str) override
+	virtual void onLogSimple(LogLevel level, const char *str) override
 	{
 		const char* logLevelStr;
-		if (level == cz::LOG_INFO)
-			logLevelStr = "INFO    : ";
-		else if (level == cz::LOG_WARNING)
-			logLevelStr = "WARNING : ";
-		else if (level == cz::LOG_ERROR)
+		if (level == LogLevel::Fatal)
+			logLevelStr = "FATAL   : ";
+		else if (level == LogLevel::Error)
 			logLevelStr = "ERROR   : ";
+		else if (level == LogLevel::Warning)
+			logLevelStr = "WARNING : ";
+		else if (level == LogLevel::Log)
+			logLevelStr = "INFO    : ";
 		else
 			logLevelStr = "LOG     : ";
 
 		Serial.print(logLevelStr); Serial.print(":"); Serial.println(str);
 	}
-
-	// These are for the MemoryProvider interface
-	virtual void *AllocMem(size_t size)
-	{
-		return malloc(size);
-	}
-
-	virtual void FreeMem(void *ptr)
-	{
-		free(ptr);
-	}
 };
+
+MyCore gCore;
 
 void setup()
 {
@@ -66,13 +59,8 @@ void setup()
 
 void loop()
 {
-	// Initialize core and get a player interface, with all the default values
-	Framework framework;
-	cz::CoreConfig cfg;
-	cfg.memoryProvider = &framework;
-	cfg.logger = &framework;
-	cz::Core *core = cz::Core::Create(&cfg);
-	cz::microaudio::AudioPlayer *player = cz::microaudio::AudioPlayer::Create(core);
+	// Initialize player with default parameters
+	cz::microaudio::AudioPlayer *player = cz::microaudio::AudioPlayer::Create();
 
 	// Load sounds
 	cz::microaudio::HSOUNDDATA hAmbientLoopData = player->LoadWAV("../media/554_bebeto_Ambient_loop_mono_11025.wav");
@@ -112,6 +100,5 @@ void loop()
 
 	// Destroy in inverse order
 	player->Destroy();
-	core->Destroy();
 }
 

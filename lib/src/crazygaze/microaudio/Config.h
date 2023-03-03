@@ -7,8 +7,7 @@
 	Conigures a czplayer build
 *********************************************************************/
 
-#ifndef _czConfig_h_
-#define _czConfig_h_
+#pragma once
 
 //
 // Flags used to configure the build, so you can decrease the codesize by cutting down on features
@@ -146,4 +145,3 @@
 	#endif
 #endif
 
-#endif // _czPlayerConfig_h_

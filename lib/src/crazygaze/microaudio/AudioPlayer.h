@@ -6,18 +6,14 @@
 // --------------------------------------------------------------
 // 
 
-#ifndef _CZ_AUDIO_PLAYER_H_
-#define _CZ_AUDIO_PLAYER_H_
+#pragma once
 
 #include "Player.h"
 #include "Audio.h"
 #include "AudioPlayerListener.h"
 
-namespace cz
+namespace cz::microaudio
 {
-namespace microaudio
-{
-
 
 /*!
  * \brief Configuration information for the %audio output device
@@ -128,7 +124,7 @@ public:
 	 *		Desired configuration. You can pass NULL to use the defaults or specify your own configuration.
 	 * \sa \link Destroy \endlink
 	 */
-	static AudioPlayer* Create(Core *core, AudioPlayerConfig *cfg=NULL);
+	static AudioPlayer* Create(AudioPlayerConfig *cfg=NULL);
 
 	/*!
 	 * \brief Destroys the object
@@ -211,7 +207,7 @@ public:
 	/*!
 	 * \brief Free a loded song
 	 *
-	 * \return ERR_OK if success, other if error.
+	 * \return Error::Success if success, other if error.
 	 * \warning Don't call this for a song that is currently playing
 	 * \sa \link LoadModule \endlink
 	 */
@@ -220,7 +216,7 @@ public:
 	/*!
 	 * \brief Free a loded sound
 	 *
-	 * \return ERR_OK if success, other if error.
+	 * \return Error::Success if success, other if error.
 	 * \warning Don't call this for a sound that is currently playing.
 	 * \sa \link LoadWAV \endlink
 	 */
@@ -353,14 +349,14 @@ public:
 	/*!
 	 * \brief Stops a sound that is currently playing
 	 * \param sndHandle Handle of the sound, which you'll get when you start playing the sound
-	 * \return ERR_OK on success, other on error.
+	 * \return Error::Success on success, other on error.
 	 * \sa \link Play \endlink \link PlayModule \endlink
 	*/
 	virtual int Stop(HSOUND sndHandle) = 0;
 
 	/*!
 	 * \brief Stop everything that is playing
-	 * \return ERR_OK on success, other on error.
+	 * \return Error::Success on success, other on error.
 	 */
 	virtual int StopAll(void) = 0;
 
@@ -368,7 +364,7 @@ public:
 	 * \brief Changes the volume of a currently playing sound
 	 * \param sndHandle Handle of the sound, which you'll get when you start playing the sound
 	 * \param vol Volume (0..255)
-	 * \return ERR_OK on success, other on error.
+	 * \return Error::Success on success, other on error.
 	 * \sa \link Play \endlink \link PlayModule \endlink \link PlayStream \endlink
 	 */
 	virtual int SetVolume(HSOUND sndHandle, uint8_t vol) = 0;
@@ -377,7 +373,7 @@ public:
 	 * \brief Changes the frequency on a currently playing sound
 	 * \param sndHandle Handle of the sound, which you'll get when you start playing the sound
 	 * \param freq Frequency
-	 * \return ERR_OK on success, other on error.
+	 * \return Error::Success on success, other on error.
 	 *
 	 * \warning This doesn't work when called on song handles
 	 * \sa \link Play \endlink \link PlayModule \endlink \link PlayStream \endlink
@@ -388,7 +384,7 @@ public:
 	 * \brief change the pan position (stereo position) of a playing sound.
 	 * \param sndHandle Handle of the sound, which you'll get when you start playing the sound
 	 * \param pan (0=left-most, 64=middle, 128=right-most)
-	 * \return ERR_OK on success, other on error.
+	 * \return Error::Success on success, other on error.
 	 * \warning This doesn't work when called on song handles
 	 * \sa \link Play \endlink \link PlayModule \endlink \link PlayStream \endlink
 	 */
@@ -397,7 +393,7 @@ public:
 	/*!
 	 * \brief Pauses a currently playing sound
 	 * \param sndHandle Handle of the sound, which you'll get when you start playing the sound
-	 * \return ERR_OK on success, other on error.
+	 * \return Error::Success on success, other on error.
 	 * \sa \link Play \endlink \link PlayModule \endlink \link PlayStream \endlink
 	 */
 	virtual int Pause(HSOUND sndHandle) = 0;
@@ -406,7 +402,7 @@ public:
 	 * \brief Resumes a paused sound.
 	 *
 	 * \param sndHandle Handle of the sound, which you'll get when you start playing the sound
-	 * \return ERR_OK on success, other on error.
+	 * \return Error::Success on success, other on error.
 	 * \sa \link Pause \endlink \link Play \endlink \link PlayModule \endlink
 	 */
 	virtual int Resume(HSOUND sndHandle) = 0;
@@ -421,7 +417,7 @@ public:
 	/*!
 	 * \brief Changes the master volume
 	 * \param vol Master volume. From 0 to \link cz::microaudio::AUDIO_MASTERVOL_MAX \endlink
-	 * \return ERR_OK on success, other on error
+	 * \return Error::Success on success, other on error
  	*/
 	virtual int SetSFXMasterVolume(int vol) = 0;
 
@@ -441,8 +437,5 @@ private:
 };
 
 
-}
+} // namespace cz::microaudio
 
-}
-
-#endif

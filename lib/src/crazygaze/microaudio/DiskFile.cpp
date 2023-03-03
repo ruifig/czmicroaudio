@@ -13,15 +13,12 @@
 
 #if CZMICROAUDIO_DISKFILE_ENABLED
 
-namespace cz
-{
-namespace io
+namespace cz::microaudio
 {
 
-DiskFile::DiskFile(::cz::Core *parentObject) : File(parentObject)
+DiskFile::DiskFile()
 {
 }
-
 
 DiskFile::~DiskFile()
 {
@@ -45,14 +42,14 @@ int DiskFile::Open(const char *filename, int resid, int mode)
 	if ((m_file = fopen(filename, openmode))==NULL) {
 		// if open fails and the requested mode is UPDATE, we try to create the file (instead of open an existing one)
 		if (mode==FILE_UPDATE){
-			if ((m_file=fopen(filename,"w+b"))==NULL) CZERROR(ERR_CANTOPEN);
+			if ((m_file=fopen(filename,"w+b"))==NULL) CZERROR(Error::CantOpen);
 		} else {
-			CZERROR(ERR_CANTOPEN);
+			CZERROR(Error::CantOpen);
 		}
 	}	
 
 	m_isOpen = true;
-	return ERR_OK;
+	return Error::Success;
 }
 
 
@@ -60,10 +57,10 @@ int DiskFile::Close(void)
 {
 	CZASSERT(m_isOpen);
 
-	if (fclose(m_file)!=0) CZERROR(ERR_CANTCLOSE);
+	if (fclose(m_file)!=0) CZERROR(Error::CantClose);
 
 	m_isOpen = false;
-	return ERR_OK;
+	return Error::Success;
 }
 
 
@@ -74,7 +71,7 @@ int DiskFile::GetPos(void)
 
 	int pos=0;
 
-	if ((pos=ftell(m_file))==-1) CZERROR(ERR_IOERROR);
+	if ((pos=ftell(m_file))==-1) CZERROR(Error::IOError);
 
 	return pos;
 }
@@ -84,47 +81,46 @@ int DiskFile::Seek(int pos , FileSeekOrigin origin)
 {
 	CZASSERT(m_isOpen);
 
-	if (origin==::cz::io::FILE_SEEK_START)
+	if (origin==FILE_SEEK_START)
 	{
-		if (fseek(m_file, pos, SEEK_SET)!=0) CZERROR(ERR_IOERROR);
+		if (fseek(m_file, pos, SEEK_SET)!=0) CZERROR(Error::IOError);
 	}
 	else if (origin==FILE_SEEK_CURRENT)
 	{
-		if (fseek(m_file, pos, SEEK_CUR)!=0) CZERROR(ERR_IOERROR);
+		if (fseek(m_file, pos, SEEK_CUR)!=0) CZERROR(Error::IOError);
 	}
 	else
 	{
-		if (fseek(m_file, pos, SEEK_END)!=0) CZERROR(ERR_IOERROR);
+		if (fseek(m_file, pos, SEEK_END)!=0) CZERROR(Error::IOError);
 	}
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 int DiskFile::ReadData(void *dest, int size)
 {
 	CZASSERT(m_isOpen);
 
-	if (fread(dest,size,1,m_file)!=1) CZERROR(ERR_IOERROR);
+	if (fread(dest,size,1,m_file)!=1) CZERROR(Error::IOError);
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 int DiskFile::WriteData(const void *src, int size)
 {
 	CZASSERT(m_isOpen);
 
-	if (size==0) return ERR_OK;
+	if (size==0) return Error::Success;
 	if (fwrite(src,size,1,m_file)!=1){
-		CZERROR(ERR_IOERROR);
+		CZERROR(Error::IOError);
 	}
 	fflush(m_file);
 
-	return ERR_OK;
+	return Error::Success;
 }
 
+} // namespace cz::microaudio
 
-} // namesace io
-} // namespace cz
+#endif
 
-#endif //
 
