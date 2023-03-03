@@ -369,19 +369,6 @@ HMODULEDATA SoundOutput::LoadModule(const void* data, int dataSize)
 //
 #if CZMICROAUDIO_WAV_ENABLED
 
-struct formatchunk
-{
-	char fID[4];
-	uint32_t fLen;
-	uint16_t wFormatTag;
-	uint16_t nChannels;
-	uint32_t nSamplesPerSec;
-	uint32_t nAvgBytesPerSec;
-	uint16_t nBlockAlign;
-	uint16_t FormatSpecific;
-};
-#define WAVE_FORMAT_PCM 1
-
 StaticSound* SoundOutput::LoadWAV(File *in)
 {
 	int err=Error::Success;

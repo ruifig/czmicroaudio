@@ -10,6 +10,7 @@ To make thing even more clean, it doesn't even checks for errors.
 ===============================================================================================*/
 
 #include <crazygaze/microaudio/All.h>
+#include <crazygaze/microaudio/MemoryTracker.h>
 
 #include <Arduino.h>
 #include <Windows.h>
@@ -60,13 +61,13 @@ void setup()
 void loop()
 {
 	// Initialize player with default parameters
-	cz::microaudio::AudioPlayer *player = cz::microaudio::AudioPlayer::Create();
+	AudioPlayer *player = AudioPlayer::Create();
 
 	// Load sounds
-	cz::microaudio::HSOUNDDATA hAmbientLoopData = player->LoadWAV("../media/554_bebeto_Ambient_loop_mono_11025.wav");
-	cz::microaudio::HSOUNDDATA hWaterDropData = player->LoadWAV("../media/30341_junggle_waterdrop24_44100.wav");
-	cz::microaudio::HMODULEDATA hTestMOD = player->LoadModule("../media/educationally_valuable.mod");
-	cz::microaudio::HMODULEDATA hTestIT = player->LoadModule("../media/TESTSONG.it");
+	HSOUNDDATA hAmbientLoopData = player->LoadWAV("../media/554_bebeto_Ambient_loop_mono_11025.wav");
+	HSOUNDDATA hWaterDropData = player->LoadWAV("../media/30341_junggle_waterdrop24_44100.wav");
+	HMODULEDATA hTestMOD = player->LoadModule("../media/educationally_valuable.mod");
+	HMODULEDATA hTestIT = player->LoadModule("../media/TESTSONG.it");
 	
 	// Play the looped sounds. You could have saved the return value to later control the playing sound
 	//player->Play(hAmbientLoopData, cz::microaudio::AUDIO_MASTERVOL_MAX, -1, cz::microaudio::SOUND_LOOP_OFF);
@@ -75,6 +76,8 @@ void loop()
 	printf("2   - Play MOD module\n");
 	printf("3   - Play IT module\n");
 	printf("ESC - Exit.\n");
+
+	MemoryTracker::log();
 	char key=0;
 	do 
 	{
@@ -88,7 +91,10 @@ void loop()
 			if (key=='2')
 				player->PlayModule(hTestMOD, 128);
 			if (key=='3')
+			{
 				player->PlayModule(hTestIT, 128);
+				MemoryTracker::log();
+			}
 		}
 	} while(key!=27);
 
