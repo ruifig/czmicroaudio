@@ -1,7 +1,13 @@
-/*
-This is used by me during development to test any of the samples without having to create PlatformIO projects
-*/
+#include <Arduino.h>
+#include <crazygaze/mut/mut.h>
 
-#include <crazygaze/microaudio/Foo.h>
+void setup()
+{
+	cz::mut::run("[czmicroaudio][uniqueptr]");
+}
 
-#include "../examples/simple/simple.cpp"
+void loop()
+{
+
+}
+

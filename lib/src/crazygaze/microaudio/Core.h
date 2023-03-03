@@ -78,7 +78,7 @@ namespace cz
 		void FreeMem(void *ptr, const char *file=NULL, int line=0);
 		const char *GetErrorMsg(int err);
 		void OnError(int errorType);
-#if CZ_PLAYER_LOG_ENABLED
+#if CZMICROAUDIO_LOG_ENABLED
 		void OnLog(LogLevel level, const char *fmt, ...);
 #endif
 

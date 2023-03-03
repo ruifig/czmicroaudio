@@ -81,7 +81,7 @@ const char *Core::GetErrorMsg(int err)
 
 
 
-#if CZ_PLAYER_LOG_ENABLED
+#if CZMICROAUDIO_LOG_ENABLED
 
 void Core::OnLog(LogLevel level, const char *fmt, ...)
 {

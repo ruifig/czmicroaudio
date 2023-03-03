@@ -1925,7 +1925,7 @@ int Mixer::GetChannels(void)
 //
 //--------
 
-#if CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
+#if CZMICROAUDIO_EXTRAFUNCTIONS_ENABLED
 
 
 
@@ -2168,7 +2168,7 @@ int Mixer::IsVoiceGoingBack(int ch)
 };
 
 
-#endif // CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
+#endif // CZMICROAUDIO_EXTRAFUNCTIONS_ENABLED
 
 } // namespace microaudio
 } // namespace cz

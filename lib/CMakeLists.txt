@@ -21,10 +21,14 @@ set(SOURCE_FILES
 	"src/crazygaze/microaudio/File.h"
 	"src/crazygaze/microaudio/ITModule.cpp"
 	"src/crazygaze/microaudio/ITModule.h"
+	"src/crazygaze/microaudio/LinkedList.h"
 	"src/crazygaze/microaudio/Logger.h"
 	"src/crazygaze/microaudio/MemFile.cpp"
 	"src/crazygaze/microaudio/MemFile.h"
+	"src/crazygaze/microaudio/Memory.h"
 	"src/crazygaze/microaudio/MemoryProvider.h"
+	"src/crazygaze/microaudio/MemoryTracker.cpp"
+	"src/crazygaze/microaudio/MemoryTracker.h"
 	"src/crazygaze/microaudio/Mixer.cpp"
 	"src/crazygaze/microaudio/Mixer.h"
 	"src/crazygaze/microaudio/MixerListener.h"
@@ -44,7 +48,6 @@ set(SOURCE_FILES
 	"src/crazygaze/microaudio/Stream.h"
 	"src/crazygaze/microaudio/WAVLoader.cpp"
 	"src/crazygaze/microaudio/WAVLoader.h"
-
 )
 
 #source_group("crazygaze\\czmicroaudio" FILES ${SOURCE_FILES})
@@ -53,8 +56,10 @@ target_include_directories(czmicroaudio PUBLIC "./src")
 if (MSVC)
 	#target_link_libraries(czmicroaudio PRIVATE Shlwapi Winmm Iphlpapi.lib)
 	target_link_libraries(czmicroaudio PRIVATE Winmm)
+	target_link_libraries(czmicroaudio PRIVATE windowsHAL)
 endif()
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
 
 add_subdirectory(./examples)
+

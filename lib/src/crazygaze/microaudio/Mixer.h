@@ -168,7 +168,7 @@ public:
 	bool Is16Bits(void);
 	int GetChannels(void);
 		
-#if CZ_PLAYER_EXTRAFUNCTIONS_ENABLED	
+#if CZMICROAUDIO_EXTRAFUNCTIONS_ENABLED	
 	int GetPosition(int ch);
 	int GetEnd(int ch);
 	int GetRepeat(int ch);

@@ -46,7 +46,7 @@ Since this is a macro, be careful with the data types you use with it.
 #include <string.h>
 
 
-#if CZ_PLAYER_IT_ENABLED
+#if CZMICROAUDIO_IT_ENABLED
 	typedef __int64 TInt64;
 	#define TInt64_Lsr(v,bits) v>>=bits
 	#define TInt64_GetTInt(v) int(v)
@@ -60,7 +60,7 @@ Since this is a macro, be careful with the data types you use with it.
 //
 // Log macros
 //
-#if CZ_PLAYER_LOG_ENABLED
+#if CZMICROAUDIO_LOG_ENABLED
 	#define CZLOG COREOBJ->OnLog
 #else
 	#define CZLOG (void)sizeof
@@ -86,7 +86,7 @@ Since this is a macro, be careful with the data types you use with it.
 //
 // Error callback macros
 //
-#if CZ_PLAYER_ERRORCALLBACK_ENABLED
+#if CZMICROAUDIO_ERRORCALLBACK_ENABLED
 	#define CZERRORCALLBACK(err) COREOBJ->OnError(err)
 #else
 	#define CZERRORCALLBACK(err) ((void)0)

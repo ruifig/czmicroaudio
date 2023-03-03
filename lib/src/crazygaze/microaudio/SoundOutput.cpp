@@ -23,15 +23,15 @@
 	#error Unknown platform
 #endif
 
-#if CZ_PLAYER_MOD_ENABLED
+#if CZMICROAUDIO_MOD_ENABLED
 	#include <crazygaze/microaudio/MODModule.h>
 #endif
 
-#if CZ_PLAYER_IT_ENABLED
+#if CZMICROAUDIO_IT_ENABLED
 	#include <crazygaze/microaudio/ITModule.h>
 #endif
 
-#if CZ_PLAYER_DISKFILE_ENABLED
+#if CZMICROAUDIO_DISKFILE_ENABLED
 	#include <crazygaze/microaudio/DiskFile.h>
 #endif
 
@@ -92,7 +92,7 @@ SoundOutput::~SoundOutput()
 		CZFREE(m_sounds);
 	}
 
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 	//m_iothread.Shutdown(true);
 #endif
 
@@ -101,7 +101,7 @@ SoundOutput::~SoundOutput()
 
 int SoundOutput::Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits16, int freq )
 {
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 	/*
 	CZLOG(LOG_INFO, "Create IO thread...\n");
 	if (!m_iothread.Create(0, PRIORITY_NORMAL)!=ERR_OK)
@@ -308,13 +308,13 @@ Module* SoundOutput::LoadModule(::cz::io::File *in)
 	int err;
 	Module *mod=NULL;
 
-#if CZ_PLAYER_MOD_ENABLED
+#if CZMICROAUDIO_MOD_ENABLED
 	if (MODModule::CheckFormat(in)){
 		if ((mod = CZNEW(MODModule)(m_core))==NULL) CZERROR_RETNULL(ERR_NOMEM);
 	}
 #endif
 
-#if CZ_PLAYER_IT_ENABLED
+#if CZMICROAUDIO_IT_ENABLED
 	if (ITModule::CheckFormat(in)) {
 		if ((mod = CZNEW(ITModule)(m_core))==NULL) CZERROR_RETNULL(ERR_NOMEM);
 	}
@@ -343,7 +343,7 @@ int SoundOutput::Update()
 	return ERR_OK;
 }
 
-#if CZ_PLAYER_DISKFILE_ENABLED
+#if CZMICROAUDIO_DISKFILE_ENABLED
 
 HMODULEDATA SoundOutput::LoadModule(const char* filename)
 {
@@ -370,7 +370,7 @@ HMODULEDATA SoundOutput::LoadModule(const void* data, int dataSize)
 //
 // WAV loading files
 //
-#if CZ_PLAYER_WAV_ENABLED
+#if CZMICROAUDIO_WAV_ENABLED
 
 struct formatchunk
 {
@@ -406,7 +406,7 @@ StaticSound* SoundOutput::LoadWAV(::cz::io::File *in)
 	return tmpsnd;
 }
 
-#if CZ_PLAYER_DISKFILE_ENABLED
+#if CZMICROAUDIO_DISKFILE_ENABLED
 HSOUNDDATA SoundOutput::LoadWAV(const char* filename)
 {
 	::cz::io::DiskFile in(m_core);
@@ -423,7 +423,7 @@ HSOUNDDATA SoundOutput::LoadWAV(const void *data, int dataSize)
 	return LoadWAV(&in);
 }
 
-#endif // CZ_PLAYER_WAV_ENABLED
+#endif // CZMICROAUDIO_WAV_ENABLED
 
 int SoundOutput::FreeModuleSound(HMODULEDATA handle)
 {
@@ -437,7 +437,7 @@ int SoundOutput::FreeStaticSound(HSOUNDDATA handle)
 	return ERR_OK;
 }
 
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 
 StreamSound* SoundOutput::LoadStream(::cz::io::File* in)
 {
@@ -464,7 +464,7 @@ int SoundOutput::FreeStream(HSOUNDDATA handle)
 	return ERR_OK;
 }
 
-#if CZ_PLAYER_DISKFILE_ENABLED
+#if CZMICROAUDIO_DISKFILE_ENABLED
 HSTREAMDATA SoundOutput::LoadStream(const char* filename)
 {
 	// Load to memory
@@ -487,8 +487,8 @@ HSTREAMDATA SoundOutput::LoadStream(const char* filename)
 	StreamSound *stream = LoadStream(memfile);
 	return stream;
 }
-#endif // CZ_PLAYER_DISKFILE_ENABLED
-#endif // CZ_PLAYER_OGG_ENABLED
+#endif // CZMICROAUDIO_DISKFILE_ENABLED
+#endif // CZMICROAUDIO_OGG_ENABLED
 
 
 void SoundOutput::SetInterpolationMode(AudioInterpolationMode quality)

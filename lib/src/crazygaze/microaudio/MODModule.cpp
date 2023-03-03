@@ -12,7 +12,7 @@
 #include <crazygaze/microaudio/Mixer.h>
 #include <crazygaze/microaudio/StaticSound.h>
 
-#if CZ_PLAYER_MOD_ENABLED 
+#if CZMICROAUDIO_MOD_ENABLED 
 
 
 namespace cz
@@ -1091,4 +1091,4 @@ int MODModule::GetSpeed(void) {
 } // namespace cz
 
 
-#endif // CZ_PLAYER_MOD_ENABLED
+#endif // CZMICROAUDIO_MOD_ENABLED

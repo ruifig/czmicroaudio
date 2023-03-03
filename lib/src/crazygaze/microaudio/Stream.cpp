@@ -18,7 +18,7 @@ using namespace io;
 namespace microaudio
 {
 
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 // Ogg callbacks to read from our stream
 size_t OggRead (void *ptr, size_t size, size_t nmemb, void *datasource)
 {
@@ -88,7 +88,7 @@ StreamSound::~StreamSound()
 int StreamSound::Init(::cz::io::File *in, int workBufferNumFrames)
 {
 	m_in = in;
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 	ov_callbacks callbacks;
 	callbacks.read_func = OggRead;
 	callbacks.seek_func = OggSeek;
@@ -134,7 +134,7 @@ int StreamSound::PrepareToPlay(bool loop)
 	m_lastPos = 0;
 	m_framesToMixBeforeFinish = -1;
 	m_loop = loop;
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 	ov_time_seek(&m_ogg, 0);
 #endif
 	m_snd.SetToSilence();
@@ -149,7 +149,7 @@ void StreamSound::FinishedPlaying()
 
 int StreamSound::Decode(void* dest, int numframes)
 {
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 	int current_section;
 	long ret;
 	int bytesTodo = numframes*m_snd.GetFrameSizeBytes();

@@ -16,7 +16,8 @@ To make thing even more clean, it doesn't even checks for errors.
 #include <Windows.h>
 #include <conio.h>
 #include <crazygaze/microaudio/MemoryTracker.h>
-
+#include <crazygaze/microaudio/LinkedList.h>
+#include <crazygaze/microaudio/Memory.h>
 
 struct Framework : public cz::AudioLogger, public cz::MemoryProvider
 {
@@ -53,44 +54,6 @@ struct Framework : public cz::AudioLogger, public cz::MemoryProvider
 	}
 };
 
-struct Bar
-{
-	char a[1000];
-};
-
-struct MemoryTrackerDeleter
-{
-	void operator()(void* b) {
-		cz::MemoryTracker::free(b);
-	}
-};
-
-template<typename T>
-using UniquePtr = std::unique_ptr<T, MemoryTrackerDeleter>;
-
-#if 0
-template<typename T, typename... Args>
-UniquePtr<T> makeUnique(Args&&... args)
-{
-	void* ptr = cz::MemoryTracker::alloc(sizeof(T));
-	return UniquePtr<T>(new(ptr) T(std::forward<Args>(args)...));
-}
-#endif
-
-template<typename T, typename... Args>
-UniquePtr<T> makeUnique(const char* file, uint32_t line, Args&&... args)
-{
-	void* ptr = cz::MemoryTracker::alloc(sizeof(T), file, line);
-	return UniquePtr<T>(new(ptr) T(std::forward<Args>(args)...));
-}
-
-#if 0
-        template<typename T, typename... Args>
-        std::unique_ptr<T> make_unique( Args&&... args ) {
-            return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-        }
-#endif
-
 void setup()
 {
 #if 0
@@ -99,21 +62,6 @@ void setup()
 	}
 #endif
 
-	using namespace cz;
-
-	//AllocationInfo* p1 = (AllocationInfo*)MemoryTracker::alloc(sizeof(AllocationInfo), __FILE__, __LINE__);
-	auto p1 = makeUnique<Bar>(__FILE__, __LINE__);
-	Bar* p2 = (Bar*)MemoryTracker::alloc(sizeof(Bar), __FILE__, __LINE__);
-	Bar* p3 = (Bar*)MemoryTracker::alloc(sizeof(Bar), __FILE__, __LINE__);
-
-	MemoryTracker::log(); Serial.println("");
-	MemoryTracker::free(p2);
-	MemoryTracker::log(); Serial.println("");
-	//MemoryTracker::free(p1);
-	p1 = nullptr;
-	MemoryTracker::log(); Serial.println("");
-	MemoryTracker::free(p3);
-	MemoryTracker::log(); Serial.println("");
 }
 
 void loop()

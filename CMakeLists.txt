@@ -38,5 +38,7 @@ add_definitions(-DUNICODE -D_UNICODE)
 add_subdirectory(./windowsHAL)
 add_subdirectory(./lib)
 add_subdirectory(./docs)
+add_subdirectory(./src)
+add_subdirectory(./temp/czmut/lib)
 
 

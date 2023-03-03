@@ -146,7 +146,7 @@ public:
 	*/
 	virtual int Update()=0;
 
-#if CZ_PLAYER_DISKFILE_ENABLED
+#if CZMICROAUDIO_DISKFILE_ENABLED
 	/*!
 	 * \brief Loads a tracked song from an external file.
 	 *
@@ -175,7 +175,7 @@ public:
 	*/
 	virtual HMODULEDATA LoadModule(const void* data, int dataSize) = 0;
 
-#if CZ_PLAYER_DISKFILE_ENABLED
+#if CZMICROAUDIO_DISKFILE_ENABLED
 	/*!
 	 * \brief Load a WAV sound from a file
 	 *
@@ -187,9 +187,9 @@ public:
 #endif
 
 
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 
-#if CZ_PLAYER_DISKFILE_ENABLED
+#if CZMICROAUDIO_DISKFILE_ENABLED
 	virtual HMODULEDATA LoadStream(const char* filename) = 0;
 #endif
 
@@ -346,7 +346,7 @@ public:
 	 */
 	virtual HSOUND PlayModule(HMODULEDATA modDataHandle, int masterVol=AUDIO_MASTERVOL_DEFAULT, bool loop=false, int firstOrder=0, int lastOrder=-1) = 0;
 
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 	virtual HSOUND PlayStream(HSTREAMDATA sndDataHandle, int vol=-1, bool loop=false) = 0;
 #endif
 

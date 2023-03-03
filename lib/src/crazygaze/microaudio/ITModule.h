@@ -405,7 +405,7 @@ class ITModule : public Module {
 		int Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, uint8_t volume=20);
 
 		//int GetFirstMixerChannel(void);
-#if CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
+#if CZMICROAUDIO_EXTRAFUNCTIONS_ENABLED
 		int GetChannels(void);
 		int GetPosition(void);
 		int GetOrders(void);
@@ -435,7 +435,7 @@ class ITModule : public Module {
 		int SetPlayRange(int firstOrder=0, int lastOrder=-1);
 				
 
-#if CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
+#if CZMICROAUDIO_EXTRAFUNCTIONS_ENABLED
 
 
 		
@@ -465,7 +465,7 @@ class ITModule : public Module {
 		//int Backward(void);
 
 
-#endif // CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
+#endif // CZMICROAUDIO_EXTRAFUNCTIONS_ENABLED
 
 
 protected:

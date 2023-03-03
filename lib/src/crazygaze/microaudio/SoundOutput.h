@@ -92,19 +92,19 @@ public:
 	virtual void Destroy();
 
 	virtual int Update();
-#if CZ_PLAYER_DISKFILE_ENABLED
+#if CZMICROAUDIO_DISKFILE_ENABLED
 	virtual HMODULEDATA LoadModule(const char* filename);
 #endif
 	virtual HMODULEDATA LoadModule(const void* data, int dataSize);
-#if CZ_PLAYER_DISKFILE_ENABLED
+#if CZMICROAUDIO_DISKFILE_ENABLED
 	virtual HSOUNDDATA LoadWAV(const char* filename);
 #endif
 	virtual HSOUNDDATA LoadWAV(const void *data, int dataSize);
 	virtual int FreeModuleSound(HMODULEDATA handle);
 	virtual int FreeStaticSound(HSOUNDDATA handle);
 
-#if CZ_PLAYER_OGG_ENABLED
-#if CZ_PLAYER_DISKFILE_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
+#if CZMICROAUDIO_DISKFILE_ENABLED
 	virtual HMODULEDATA LoadStream(const char* filename);
 #endif
 	virtual HMODULEDATA LoadStream(const void* data, int dataSize);
@@ -161,7 +161,7 @@ private:
 
 	Module* LoadModule(::cz::io::File *in);
 	StaticSound* LoadWAV(::cz::io::File *in);
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 	StreamSound* LoadStream(::cz::io::File *in);
 #endif
 
@@ -173,7 +173,7 @@ private:
 	SOUND_ST *GetSlot(HSOUND sndHandle);
 	uint32_t m_lastHandle;
 
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 	//WorkerThread m_iothread;
 #endif
 

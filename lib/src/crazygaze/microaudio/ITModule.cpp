@@ -19,7 +19,7 @@
 // Wrap the entire source code.
 //
 
-#if CZ_PLAYER_IT_ENABLED
+#if CZMICROAUDIO_IT_ENABLED
 
 
 //#define PROFILE() PROFILE_OFF
@@ -3015,7 +3015,7 @@ UPDATE_EFFECTS:
 //  EXTRA FUNCTIONS
 //
 //--------
-#if CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
+#if CZMICROAUDIO_EXTRAFUNCTIONS_ENABLED
 
 /*
 int ITModule::GetFirstMixerChannel(void){
@@ -3087,7 +3087,7 @@ int ITModule::SetMasterVolume(uint8_t vol){
 	return ERR_OK;
 }
 
-#endif // CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
+#endif // CZMICROAUDIO_EXTRAFUNCTIONS_ENABLED
 
 
 
@@ -3096,5 +3096,5 @@ int ITModule::SetMasterVolume(uint8_t vol){
 
 
 
-#endif // CZ_PLAYER_IT_ENABLED
+#endif // CZMICROAUDIO_IT_ENABLED
 

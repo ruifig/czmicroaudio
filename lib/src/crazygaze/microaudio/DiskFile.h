@@ -14,7 +14,7 @@
 
 #include <crazygaze/microaudio/File.h>
 
-#if CZ_PLAYER_DISKFILE_ENABLED
+#if CZMICROAUDIO_DISKFILE_ENABLED
 
 namespace cz
 {
@@ -52,6 +52,6 @@ private:
 } // namespace cz
 
 
-#endif // CZ_PLAYER_DISKFILE_ENABLED
+#endif // CZMICROAUDIO_DISKFILE_ENABLED
 
 #endif

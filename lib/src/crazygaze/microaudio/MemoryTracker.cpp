@@ -1,7 +1,7 @@
 #include <crazygaze/microaudio/MemoryTracker.h>
 #include <Arduino.h>
 
-namespace cz
+namespace cz::microaudio
 {
 
 const char* getFilename(const char* file)
@@ -14,14 +14,17 @@ const char* getFilename(const char* file)
 
 void* MemoryTracker::alloc(size_t size, const char* file, uint32_t line)
 {
-	AllocationInfo* info = reinterpret_cast<AllocationInfo*>(malloc(sizeof(AllocationInfo) + size));
+	AllocInfo* info = reinterpret_cast<AllocInfo*>(malloc(sizeof(AllocInfo) + size));
 	if (!info)
 	{
 		exit(EXIT_FAILURE);
 	}
 
+	memset(info, 0, sizeof(AllocInfo));
+	void* ptr = info+1;
+
 #if CZ_MEMORYTRACKER_CHECK_FREE
-	info->ptr = info+1;
+	info->ptr = ptr;
 #endif
 
 #if CZ_MEMORYTRACKER_TRACK_LOCATION
@@ -30,16 +33,9 @@ void* MemoryTracker::alloc(size_t size, const char* file, uint32_t line)
 #endif
 	info->size = size;
 
-	info->previous = ms_last;
-	info->next = nullptr;
-	if (ms_last)
-	{
-		ms_last->next = info;
-	}
-	ms_last = info;
-
+	ms_list.pushBack(info);
 	ms_numAllocs++;
-	return info->ptr;
+	return ptr;
 }
 
 void* MemoryTracker::alloc(size_t size)
@@ -54,7 +50,7 @@ void MemoryTracker::free(void* ptr)
 		return;
 	}
 
-	AllocationInfo* info = reinterpret_cast<AllocationInfo*>(reinterpret_cast<uint8_t*>(ptr) - sizeof(AllocationInfo));
+	AllocInfo* info = reinterpret_cast<AllocInfo*>(reinterpret_cast<uint8_t*>(ptr) - sizeof(AllocInfo));
 #if CZ_MEMORYTRACKER_CHECK_FREE
 	assert(info->ptr == ptr);
 	if (info->ptr != ptr)
@@ -63,22 +59,8 @@ void MemoryTracker::free(void* ptr)
 	}
 #endif
 
-	if (info == ms_last)
-	{
-		ms_last = info->previous;
-	}
-
-	if (info->previous)
-	{
-		info->previous->next = info->next;
-	}
-	if (info->next)
-	{
-		info->next->previous = info->previous;
-	}
-
+	ms_list.remove(info);
 	::free(info);
-
 	ms_numFrees++;
 }
 
@@ -100,15 +82,9 @@ void MemoryTracker::log()
 	size_t totalAllocs = 0;
 	size_t totalRequestedBytes = 0;
 
-	// Find the first element
-	const AllocationInfo* info = ms_last;
-	while(info && info->previous)
-	{
-		info = info->previous;
-	}
-
 	printMultipleln("Ptr,File,Line,Size");
 
+	const AllocInfo* info = ms_list.front();
 	while(info)
 	{
 		totalAllocs++;
@@ -124,25 +100,41 @@ void MemoryTracker::log()
 		file = info->file;
 		line = info->line;
 #endif
-
-	printMultipleln(ptr, ",", file, ",", line, ",", info->size);
-	#if 0
-	Serial.print(ptr); Serial.print(",");
-	Serial.print(file); Serial.print(",");
-	Serial.print(line); Serial.print(",");
-	Serial.println(size);
-	#endif
-
-		info = info->next;
+		printMultipleln(ptr, ",", file, ",", line, ",", info->size);
+		info = info->nextLinkedItem();
 	}
 
 	assert(totalAllocs == (ms_numAllocs - ms_numFrees));
 	printMultiple();
 
-	size_t overheadBytes = totalAllocs * sizeof(AllocationInfo);
+	size_t overheadBytes = totalAllocs * sizeof(AllocInfo);
 	printMultipleln("Total allocs=", totalAllocs);
 	printMultipleln("Total requested bytes=", totalRequestedBytes);
 	printMultipleln("Total overhead=", overheadBytes);
 }
 
+void MemoryTracker::calcAllocated(size_t* outAppAllocated, size_t* outOverhead)
+{
+	size_t appAllocated = 0;
+	size_t overhead = 0;
+	size_t totalAllocs = 0;
+
+	const AllocInfo* info = ms_list.front();
+	while(info)
+	{
+		totalAllocs++;
+		appAllocated += info->size;
+		info = info->nextLinkedItem();
+	}
+
+	assert(totalAllocs == (ms_numAllocs - ms_numFrees));
+
+	if (outAppAllocated)
+		*outAppAllocated = appAllocated;
+	if (outOverhead)
+		*outOverhead = totalAllocs * sizeof(AllocInfo);
 }
+
+}
+
+

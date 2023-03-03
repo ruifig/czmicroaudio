@@ -59,7 +59,7 @@ public:
 	}
 //	czMixer* GetMixer(void) { return m_mixer; }
 
-#if CZ_PLAYER_EXTRAFUNCTIONS_ENABLED
+#if CZMICROAUDIO_EXTRAFUNCTIONS_ENABLED
 	//virtual int GetFirstMixerChannel(void) = 0;
 	virtual int GetChannels(void)=0;
 	virtual int GetPosition(void)=0;

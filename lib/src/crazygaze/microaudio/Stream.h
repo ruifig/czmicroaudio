@@ -20,7 +20,7 @@
 #include <crazygaze/microaudio/StaticSound.h>
 #include <crazygaze/microaudio/MixerListener.h>
 
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 #include "ivorbiscodec.h"
 #include "ivorbisfile.h"
 #endif
@@ -85,7 +85,7 @@ private:
 	::cz::io::File *m_in;
 	StaticSound m_snd;
 
-#if CZ_PLAYER_OGG_ENABLED
+#if CZMICROAUDIO_OGG_ENABLED
 	OggVorbis_File m_ogg;
 #endif
 	int m_lastPos; // Last played position within the working buffer

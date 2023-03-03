@@ -1,4 +1,5 @@
-add_custom_target(docs SOURCES
+add_custom_target(czmicroaudio_docs SOURCES
 	"../README.md"
 	"TODO.md"
 )
+
