@@ -10,23 +10,18 @@
 #include <crazygaze/microaudio/Stream.h>
 #include <crazygaze/microaudio/DiskFile.h>
 
-namespace cz
-{
-
-using namespace io;
-	
-namespace microaudio
+namespace cz::microaudio
 {
 
 #if CZMICROAUDIO_OGG_ENABLED
 // Ogg callbacks to read from our stream
 size_t OggRead (void *ptr, size_t size, size_t nmemb, void *datasource)
 {
-	::cz::io::File* f = static_cast<::cz::io::File*>(datasource);
+	File* f = static_cast<File*>(datasource);
 	size_t dataLeft = f->GetSize() - f->GetPos();
 	size_t nmemb_left = dataLeft/size;
 	int nnemb_toread = MIN(nmemb_left, nmemb);
-	if (f->ReadData(ptr, size*nnemb_toread)==ERR_OK)
+	if (f->ReadData(ptr, size*nnemb_toread)==Error::Success)
 		return nnemb_toread;
 	else
 		return 0;
@@ -34,7 +29,7 @@ size_t OggRead (void *ptr, size_t size, size_t nmemb, void *datasource)
 
 int OggSeek (void *datasource, ogg_int64_t offset, int whence)
 {
-	::cz::io::File* f = static_cast<::cz::io::File*>(datasource);
+	File* f = static_cast<File*>(datasource);
 	int res = 0;
 	if (whence==SEEK_SET)
 		res = f->Seek(static_cast<int>(offset), FILE_SEEK_START);
@@ -47,19 +42,19 @@ int OggSeek (void *datasource, ogg_int64_t offset, int whence)
 		assert(0);
 	}
 
-	return (res==ERR_OK) ? 0 : -1;
+	return (res==Error::Success) ? 0 : -1;
 }
 
 int OggClose (void *datasource)
 {
-	::cz::io::File* f = static_cast<::cz::io::File*>(datasource);
+	File* f = static_cast<File*>(datasource);
 	int res = f->Close();
-	return (res==ERR_OK) ? 0 : -1;
+	return (res==Error::Success) ? 0 : -1;
 }
 
 long OggTell (void *datasource)
 {
-	::cz::io::File* f = static_cast<::cz::io::File*>(datasource);
+	File* f = static_cast<File*>(datasource);
 	return f->GetPos();
 }
 #endif
@@ -68,10 +63,9 @@ long OggTell (void *datasource)
 // StreamSound
 //////////////////////////////////////////////////////////////////////////
 
-StreamSound::StreamSound(::cz::Core *parentObject) : ::cz::Object(parentObject), m_snd(parentObject)
+StreamSound::StreamSound()
 {
 	m_isplaying = false;
-	m_in = NULL;
 	m_lastPos = 0;
 	m_loop = false;
 	m_framesToMixBeforeFinish = -1;
@@ -79,15 +73,12 @@ StreamSound::StreamSound(::cz::Core *parentObject) : ::cz::Object(parentObject),
 
 StreamSound::~StreamSound()
 {
-	if (m_in)
-	{
-		CZDELETE(m_in);
-	}
 }
 
-int StreamSound::Init(::cz::io::File *in, int workBufferNumFrames)
+int StreamSound::Init(UniquePtr<File> in, int workBufferNumFrames)
 {
-	m_in = in;
+	m_in = std::move(in);
+
 #if CZMICROAUDIO_OGG_ENABLED
 	ov_callbacks callbacks;
 	callbacks.read_func = OggRead;
@@ -99,20 +90,20 @@ int StreamSound::Init(::cz::io::File *in, int workBufferNumFrames)
 	ret = ov_open_callbacks(m_in, &m_ogg, NULL, 0, callbacks);
 	if (ret)
 	{
-		CZERROR(ERR_BADAPICALL);
+		CZERROR(Error::BadAPICall);
 	}
 
 	// Streams needs to be seekable so we can loop/restart
 	if (ov_seekable(&m_ogg)==0)
-		CZERROR(ERR_WRONGFORMAT);
+		CZERROR(Error::WrongFormat);
 
 	vorbis_info* info = ov_info(&m_ogg, -1);
 	if (!info)
-		CZERROR(ERR_BADAPICALL);
+		CZERROR(Error::BadAPICall);
 
 
 	if (!(info->channels==1 || info->channels==2))
-		CZERROR(ERR_WRONGFORMAT);
+		CZERROR(Error::WrongFormat);
 
 	m_snd.Set(SOUND_16BITS|SOUND_SIGNED| ((info->channels==1) ? SOUND_MONO : SOUND_STEREO), workBufferNumFrames);
 	m_snd.SetDefaults(info->rate);
@@ -121,14 +112,14 @@ int StreamSound::Init(::cz::io::File *in, int workBufferNumFrames)
 	m_snd.SetDefaults(11025);
 #endif
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 int StreamSound::PrepareToPlay(bool loop)
 {
 	if (m_isplaying)
 	{
-		CZERROR(ERR_CANTRUN);
+		CZERROR(Error::CantRun);
 	}
 
 	m_lastPos = 0;
@@ -139,7 +130,7 @@ int StreamSound::PrepareToPlay(bool loop)
 #endif
 	m_snd.SetToSilence();
 	m_isplaying = true;
-	return ERR_OK;
+	return Error::Success;
 }
 
 void StreamSound::FinishedPlaying()
@@ -175,7 +166,7 @@ int StreamSound::Decode(void* dest, int numframes)
 		}
 		else // <0 means error
 		{
-			CZERROR(ERR_BADAPICALL);
+			CZERROR(Error::BadAPICall);
 			return -1;
 		}
 	}
@@ -200,7 +191,6 @@ int StreamSound::Decode(void* dest, int numframes)
 
 bool StreamSound::ChannelMix(int mixpos, int numframes)
 {
-
 
 	// If we're finishing, then keep writing silence until we're done
 	if (m_framesToMixBeforeFinish>=0)
@@ -271,6 +261,5 @@ bool StreamSound::ChannelMix(int mixpos, int numframes)
 	return true;
 }
 
-} // namespace microaudio
-} // namespace cz
+} // namespace cz::microaudio
 

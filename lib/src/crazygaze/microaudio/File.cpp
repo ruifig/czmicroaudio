@@ -10,13 +10,10 @@
 #include <crazygaze/microaudio/File.h>
 #include <crazygaze/microaudio/PlayerPrivateDefs.h>
 
-namespace cz
+namespace cz::microaudio
 {
 
-namespace io
-{
-
-File::File(::cz::Core *core) : ::cz::Object(core)
+File::File()
 {
 	m_isOpen = false;
 	m_swapBytes = false;
@@ -39,13 +36,13 @@ int File::GetSize(void)
 
 int File::WriteString(const char *str)
 {
-	if (m_isInsideWriteString) return ERR_OK; // avoid re-entrance
+	if (m_isInsideWriteString) return Error::Success; // avoid re-entrance
 
-	// set flag to avoid reentrance in case this file is a log file, and an error happens while logging.
+	// set flag to avoid re entrance in case this file is a log file, and an error happens while logging.
 	m_isInsideWriteString = true;
-	int ret = ERR_OK;
+	int ret = Error::Success;
 	if (strlen(str)>0) ret = WriteData(str, strlen(str));
-	if (ret==ERR_OK){
+	if (ret==Error::Success){
 		int16_t nl = 0x0A0D;
 		ret = WriteData(&nl, sizeof nl);
 	}
@@ -53,7 +50,5 @@ int File::WriteString(const char *str)
 	return ret;	
 }
 
-
-} // namespace io
-} // namespace cz
+} // namespace cz::microaudio
 

@@ -7,31 +7,25 @@
 // 
 //
 
-#ifndef _CZSTREAM_H
-#define _CZSTREAM_H
-
-
-/** \file */
+#pragma once
 
 #include <crazygaze/microaudio/PlayerPrivateDefs.h>
-#include <crazygaze/microaudio/Object.h>
 #include <crazygaze/microaudio/Audio.h>
 #include <crazygaze/microaudio/File.h>
 #include <crazygaze/microaudio/StaticSound.h>
 #include <crazygaze/microaudio/MixerListener.h>
+#include <crazygaze/microaudio/Memory.h>
 
 #if CZMICROAUDIO_OGG_ENABLED
 #include "ivorbiscodec.h"
 #include "ivorbisfile.h"
 #endif
 
-namespace cz
-{
-namespace microaudio
+namespace cz::microaudio
 {
 
 //! Only supports ogg vorbis at the moment
-class StreamSound : public ::cz::Object, public ::cz::microaudio::ChannelMixingListener
+class StreamSound : public ::cz::microaudio::ChannelMixingListener
 {
 
 public:
@@ -40,7 +34,8 @@ public:
 	{
 		kNUM_CHUNKS = 2
 	};
-	StreamSound(::cz::Core *parentObject);
+
+	StreamSound();
 	virtual ~StreamSound();
 
 	// Load the stream
@@ -48,7 +43,7 @@ public:
 	//	File to read from. Ownership is transfered to the StreamSound object. NOTE: Need to be allocated on the heap
 	// \param workBufferNumFrames
 	//	Size of the StaticSound used to by the mixer to feed the data
-	virtual int Init(::cz::io::File *in, int workBufferNumFrames);
+	virtual int Init(UniquePtr<File> in, int workBufferNumFrames);
 
 	StaticSound* GetWorkBuffer()
 	{
@@ -76,13 +71,17 @@ public:
 private:
 
 	int Decode(void* dest, int bytes);
-	virtual bool ChannelMix(int mixpos, int numframes);
+
+	//
+	// ChannelMixingListener interface
+	//
+	virtual bool ChannelMix(int mixpos, int numframes) override;
 
 	// We can't play a stream multiple times, so we need to detect if we're playing this stream already.
 	// In the future, I can make it possible to play an ogg vorbis multiple times if it's loaded into memory,
 	// by sharing the loaded memory
 	bool m_isplaying;
-	::cz::io::File *m_in;
+	UniquePtr<File> m_in;
 	StaticSound m_snd;
 
 #if CZMICROAUDIO_OGG_ENABLED
@@ -99,9 +98,5 @@ private:
 	//StreamChunkReader m_jobs[kNUM_CHUNKS];
 };
 
+} // namespace cz::microaudio
 
-} // namespace microaudio
-} // namespace cz
-
-
-#endif

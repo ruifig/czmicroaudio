@@ -19,13 +19,9 @@ bool first=true;
 czMophunFile raw;
 */
 
-namespace cz
+namespace cz::microaudio
 {
 	
-namespace microaudio
-{
-
-
 inline int MakeFixed(uint32_t dividend,uint16_t divisor);
 extern "C" MXFUNC Mix8Mono_Normal;
 extern "C" MXFUNC Mix8Stereo_Normal;
@@ -92,7 +88,7 @@ inline int MakeFixed(uint32_t dividend,uint16_t divisor)
 
 	whole=dividend/divisor;
 	part=((dividend%divisor)<<Mixer::FREQFRACBITS)/divisor;
-	//CZLOG("WHOLE %u PART %u = %d\n", whole, part, uint32_t((whole<<FREQFRACBITS)|part));
+	//CZMICROAUDIO_LOG("WHOLE %u PART %u = %d\n", whole, part, uint32_t((whole<<FREQFRACBITS)|part));
 
 	uint32_t res = (whole<<Mixer::FREQFRACBITS)|part;
 
@@ -1044,17 +1040,17 @@ void Mixer::Free(void)
 	PROFILE();
 	
 	if(m_mixblock!=NULL){
-		CZFREE(m_mixblock);
+		CZMICROAUDIO_FREE(m_mixblock);
 		m_mixblock=NULL;
 	}
 	if(channels!=NULL){
-		CZFREE(channels);
+		CZMICROAUDIO_FREE(channels);
 		channels=NULL;
 	}
 }
 
 
-Mixer::Mixer(::cz::Core *parentObject) : ::cz::Object(parentObject)
+Mixer::Mixer()
 {
     PROFILE();
 
@@ -1124,22 +1120,22 @@ int Mixer::Init(uint32_t numberofchannels, uint32_t mixsize,
 	samplesize=1;
 	if(IS_STEREO) samplesize*=2;
 
-	if(m_mixblock!=NULL) CZFREE(m_mixblock);
-	if(channels!=NULL) CZFREE(channels);
+	if(m_mixblock!=NULL) CZMICROAUDIO_FREE(m_mixblock);
+	if(channels!=NULL) CZMICROAUDIO_FREE(channels);
 
 	// allocate mixing buffer only if 8 bits output is used
-	m_mixblock = (int32_t*) CZALLOC(sizeof(int32_t)*mixsize*samplesize);
-	if (m_mixblock==NULL) CZERROR(ERR_NOMEM);
+	m_mixblock = (int32_t*) CZMICROAUDIO_ALLOC(sizeof(int32_t)*mixsize*samplesize);
+	if (m_mixblock==NULL) CZERROR(Error::OutOfMemory);
 	int length=sizeof(m_mixblock[0])*mixsize*samplesize;
 	memset(m_mixblock,0,length);
 	
-	channels=(CHANNEL*) CZALLOC(sizeof(CHANNEL)*nch);
-	if(channels==NULL) CZERROR(ERR_NOMEM);
+	channels=(CHANNEL*) CZMICROAUDIO_ALLOC(sizeof(CHANNEL)*nch);
+	if(channels==NULL) CZERROR(Error::OutOfMemory);
 	memset(channels,0,sizeof(CHANNEL)*nch);
 
 	SetQuality(AUDIO_INTERPOLATION_NONE);
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 
@@ -1225,7 +1221,7 @@ int Mixer::SetQuality(AudioInterpolationMode qtype)
 		chptr++;
 	}
 		
-	return ERR_OK;	
+	return Error::Success;	
 }
 
 AudioInterpolationMode Mixer::GetQuality()
@@ -1264,7 +1260,7 @@ int Mixer::MixPortion(void *dest, uint32_t len)
 CHANNEL *chptr=&channels[0];
 
 #if CZ_DEBUG
-	if(len>samples) CZERROR(ERR_INVPAR);
+	if(len>samples) CZERROR(Error::InvalidParameter);
 #endif
 
 	memset(m_mixblock,0,len*sizeof(m_mixblock[0])*samplesize); // erase only what will be used
@@ -1306,7 +1302,7 @@ CHANNEL *chptr=&channels[0];
     
 
 
-	return ERR_OK;		
+	return Error::Success;		
 }
 
 
@@ -1368,7 +1364,7 @@ int Mixer::SetVoice(uint32_t ch, StaticSound *sound,
 	SetVolume(ch,vol);
 	SetPanning(ch,pan);
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 
@@ -1386,7 +1382,7 @@ int Mixer::SetVoice(uint32_t ch, StreamSound *stream, uint8_t vol, bool loop)
 	// NOTE : Needs to be at the end, because SetSample clears this
 	SetMixingListener(ch, stream);
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 
@@ -1413,7 +1409,7 @@ int Mixer::SetSample(int ch, StaticSound *sound,uint32_t current, uint32_t end, 
 	PROFILE();
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif	
 
 	CHANNEL *chptr=&channels[ch];
@@ -1454,7 +1450,7 @@ int Mixer::SetSample(int ch, StaticSound *sound,uint32_t current, uint32_t end, 
 	if (chptr->on==1)
 		chptr->stopRampState.restart = true;
 
-	return ERR_OK;	
+	return Error::Success;	
 }
 
 // Set a channel's play position.
@@ -1478,12 +1474,12 @@ int Mixer::SetPosition(int ch, uint32_t current)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif	
 	
 	CHANNEL *chptr=&channels[ch];	
 	chptr->pos=current<<FREQFRACBITS;
-	return ERR_OK;
+	return Error::Success;
 }
 
 // Set the looping positions and the loop mode of a channel.
@@ -1516,7 +1512,7 @@ int Mixer::SetLoop(uint8_t ch, uint32_t loopbeg, uint32_t loopend, int loopmode)
 	PROFILE();
 
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	CHANNEL *chptr=&channels[ch];
@@ -1532,7 +1528,7 @@ int Mixer::SetLoop(uint8_t ch, uint32_t loopbeg, uint32_t loopend, int loopmode)
 
 	chptr->on=oldstate;
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 // Set the sound frequency of a channel
@@ -1556,7 +1552,7 @@ int Mixer::SetFrequency(int ch, uint32_t freq)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	CHANNEL *chptr=&channels[ch];
@@ -1569,7 +1565,7 @@ int Mixer::SetFrequency(int ch, uint32_t freq)
 	chptr->increment=MakeFixed(freq,uint16_t(FREQUENCY));
 
 	chptr->on=oldstate;
-	return ERR_OK;
+	return Error::Success;
 }	
 
 // Set the volume of a channel.
@@ -1593,11 +1589,11 @@ int Mixer::SetVolume(int ch, uint8_t vol)
 	PROFILE();	
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 	
 	channels[ch].vol=vol;
-	return ERR_OK;
+	return Error::Success;
 }
 
 // Set the pan position of a channel
@@ -1621,11 +1617,11 @@ int Mixer::SetPanning(int ch, uint8_t pan)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 	
 	channels[ch].panning=pan;	
-	return ERR_OK;
+	return Error::Success;
 }
 
 
@@ -1651,7 +1647,7 @@ int Mixer::SetVoiceStatus(int ch, int on)
 	PROFILE();
 
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	uint8_t oldstate = channels[ch].on;
@@ -1662,19 +1658,19 @@ int Mixer::SetVoiceStatus(int ch, int on)
 	else if (channels[ch].on==0 && oldstate==1)
 		channels[ch].stopRampState.restart = true;
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 
 int Mixer::SetMixingListener(int ch, ChannelMixingListener* listener)
 {
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	CHANNEL* chPtr = &channels[ch];
 	chPtr->mixingListener = listener;
-	return ERR_OK;
+	return Error::Success;
 }
 
 
@@ -1718,7 +1714,7 @@ int Mixer::SetMasterVolume(uint8_t v,uint32_t firstchannel,uint32_t howmany)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if((int)firstchannel>=nch) CZERROR(ERR_INVPAR);
+	if((int)firstchannel>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 
@@ -1732,7 +1728,7 @@ int Mixer::SetMasterVolume(uint8_t v,uint32_t firstchannel,uint32_t howmany)
 		chptr++;
 		}
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 
@@ -1757,7 +1753,7 @@ int Mixer::IsVoiceON(int ch)
 	PROFILE();
 	
 #if CZ_DEBUG
-    if(ch>=nch) CZERROR(ERR_INVPAR);
+    if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
     
 //	if(ch>=nch) return 0;
@@ -1793,7 +1789,7 @@ int Mixer::GetMasterVolume(int ch)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	return channels[ch].mastervol;
@@ -1827,7 +1823,7 @@ int Mixer::ReserveChannels(int numChannels)
 	}
 
 
-	if (maxConsecutiveNumChannels<numChannels) CZERROR(ERR_NOTAVAILABLE);
+	if (maxConsecutiveNumChannels<numChannels) CZERROR(Error::NotAvailable);
 
 	// Enough consecutive channels found, so mark them as reserved
 	for (int i=maxConsecutiveFirstChannel; i<maxConsecutiveFirstChannel+numChannels; i++) channels[i].reserved = 1;
@@ -1849,12 +1845,12 @@ int Mixer::ReserveSingleChannel(int channel)
 		}
 	}
 
-	CZERROR(ERR_NOTAVAILABLE);
+	CZERROR(Error::NotAvailable);
 }
 
 int Mixer::FreeChannel(int channel){
 	channels[channel].reserved = 0;
-	return ERR_OK;
+	return Error::Success;
 }
 
 
@@ -1947,7 +1943,7 @@ int  Mixer::GetPosition(int ch)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	return channels[ch].pos>>FREQFRACBITS;
@@ -1971,7 +1967,7 @@ int  Mixer::GetEnd(int ch)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	return channels[ch].end>>FREQFRACBITS;
@@ -1999,7 +1995,7 @@ int  Mixer::GetRepeat(int ch)
 	PROFILE();
 		
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	return channels[ch].repeat>>FREQFRACBITS;
@@ -2012,11 +2008,11 @@ int Mixer::GetLoopMode(int ch,LOOPMODE *lm)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	*lm=channels[ch].loop;
-	return ERR_OK;
+	return Error::Success;
 };
 */
 
@@ -2038,7 +2034,7 @@ int Mixer::GetFrequency(int ch)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	return channels[ch].freq;
@@ -2062,7 +2058,7 @@ int Mixer::GetVolume(int ch)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	return channels[ch].vol;
@@ -2086,7 +2082,7 @@ int Mixer::GetPanning(int ch)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	return channels[ch].panning;
@@ -2117,7 +2113,7 @@ int Mixer::GetVoiceValue(int ch)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if(ch>=nch) CZERROR(ERR_INVPAR);
+	if(ch>=nch) CZERROR(Error::InvalidParameter);
 #endif
 
 	CHANNEL *chptr=&channels[ch];
@@ -2170,5 +2166,5 @@ int Mixer::IsVoiceGoingBack(int ch)
 
 #endif // CZMICROAUDIO_EXTRAFUNCTIONS_ENABLED
 
-} // namespace microaudio
-} // namespace cz
+} // namespace cz::microaudio
+

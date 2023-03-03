@@ -11,13 +11,11 @@
 #include <crazygaze/microaudio/File.h>
 #include <crazygaze/microaudio/Mixer.h>
 #include <crazygaze/microaudio/StaticSound.h>
+#include <crazygaze/microaudio/Memory.h>
 
 #if CZMICROAUDIO_MOD_ENABLED 
 
-
-namespace cz
-{
-namespace microaudio
+namespace cz::microaudio
 {
 
 // Default panning to use when loading a MOD.
@@ -186,7 +184,7 @@ enum ExtendedEffect {
 };
 
 
-MODModule::MODModule(::cz::Core *parentObject) : Module(parentObject)
+MODModule::MODModule()
 {
 	ResetMembers();
 }
@@ -198,16 +196,16 @@ MODModule::~MODModule()
 
 void MODModule::CleanUpMemory(void)
 {
-	if (m_tempPatternData!=NULL) CZFREE(m_tempPatternData);
-	if (m_packedPatternData!=NULL) CZFREE(m_packedPatternData);
+	if (m_tempPatternData!=NULL) CZMICROAUDIO_FREE(m_tempPatternData);
+	if (m_packedPatternData!=NULL) CZMICROAUDIO_FREE(m_packedPatternData);
 	for (int numSample = 0; numSample<MOD_NUMSAMPLES; numSample++){
 		MODSAMPLE *smp = &m_samples[numSample];
 		if (smp->snd!=NULL){
-			CZDELETE(smp->snd);
+			CZMICROAUDIO_DELETE(smp->snd);
 			smp->snd = NULL;
 		}
 	}
-	if (m_tracks!=NULL) CZFREE(m_tracks);
+	if (m_tracks!=NULL) CZMICROAUDIO_FREE(m_tracks);
 }
 
 void MODModule::ResetMembers(void)
@@ -226,21 +224,21 @@ void MODModule::ResetMembers(void)
 	m_mixer = NULL;
 }
 
-inline uint16_t ReadBigEndianWord(::cz::io::File *in) {
-	return (uint16_t) (((uint16_t)in->ReadUnsigned8()<<8) + (uint16_t)in->ReadUnsigned8());
+inline uint16_t ReadBigEndianWord(File *in) {
+	return (uint16_t)(((uint16_t)in->ReadUnsigned8() << 8) + (uint16_t)in->ReadUnsigned8());
 }
 
 
-bool MODModule::CheckFormat(::cz::io::File *in)
+bool MODModule::CheckFormat(File *in)
 {
 
 	// Check the MOD type
 	int pos = in->GetPos();
 //	if (in->GetSize()<(1080+4)) return false;
 	char buf[4];
-	in->Seek(1080, ::cz::io::FILE_SEEK_START);
+	in->Seek(1080, FILE_SEEK_START);
 	in->ReadData(buf, 4);
-	in->Seek(pos, ::cz::io::FILE_SEEK_START);
+	in->Seek(pos, FILE_SEEK_START);
 	if ((memcmp(buf, g_MOD_modTypeMK, 4)==0)||
 		(memcmp(buf, g_MOD_modType6CHN, 4)==0)||
 		(memcmp(buf, g_MOD_modType8CHN, 4)==0)) {
@@ -250,44 +248,44 @@ bool MODModule::CheckFormat(::cz::io::File *in)
 	}
 }
 
-int MODModule::Init(::cz::io::File *in)
+int MODModule::Init(File *in)
 {
 	int numSample;
 
-	if (m_isPlaying) CZERROR(ERR_CANTRUN);
+	if (m_isPlaying) CZERROR(Error::CantRun);
 
 	CleanUpMemory();
 	ResetMembers();
 
 	// Check the MOD type
-//	if (in->GetSize()<(1080+4)) CZERROR(ERR_WRONGFORMAT);
+//	if (in->GetSize()<(1080+4)) CZERROR(Error::WrongFormat);
 	char buf[4];
-	in->Seek(1080, ::cz::io::FILE_SEEK_START);
+	in->Seek(1080, FILE_SEEK_START);
 	in->ReadData(buf, 4);
 	if (memcmp(buf, g_MOD_modTypeMK, 4)==0){
 		m_numChannels = 4;
-		CZLOG(LOG_INFO, "MOD of type M.K. (4 channels)\n");
+		CZMICROAUDIO_LOG(LogLevel::Log, "MOD of type M.K. (4 channels)\n");
 	} else if (memcmp(buf, g_MOD_modType6CHN, 4)==0) {
 		m_numChannels = 6;
-		CZLOG(LOG_INFO, "MOD of type 6CHN\n");
+		CZMICROAUDIO_LOG(LogLevel::Log, "MOD of type 6CHN\n");
 	} else if (memcmp(buf, g_MOD_modType8CHN, 4)==0) {
 		m_numChannels = 8;
-		CZLOG(LOG_INFO, "MOD of type 8CHN\n");
-	} else CZERROR(ERR_WRONGFORMAT);
+		CZMICROAUDIO_LOG(LogLevel::Log, "MOD of type 8CHN\n");
+	} else CZERROR(Error::WrongFormat);
 
 	// Allocate the memory needed for tracks
-	m_tracks = (MODTRACK*) CZALLOC(sizeof(MODTRACK)*m_numChannels);
-	if (m_tracks==NULL) CZERROR(ERR_NOMEM);
+	m_tracks = (MODTRACK*) CZMICROAUDIO_ALLOC(sizeof(MODTRACK)*m_numChannels);
+	if (m_tracks==NULL) CZERROR(Error::OutOfMemory);
 	CLEARARRAY(m_tracks, m_numChannels);
 
 	// Read song name (20 bytes)
-	in->Seek(0, ::cz::io::FILE_SEEK_START);
+	in->Seek(0, FILE_SEEK_START);
 	in->ReadData(m_songName, MOD_SONGNAMELENGTH);
 	m_songName[MOD_SONGNAMELENGTH-1] = 0; // Set last char to NULL
 
 
 	// Read Samples
-	in->Seek(20, ::cz::io::FILE_SEEK_START);
+	in->Seek(20, FILE_SEEK_START);
 	for (numSample = 0; numSample < MOD_NUMSAMPLES; numSample++){
 		MODSAMPLE *smp = &m_samples[numSample];
 		in->ReadData(smp->name, MOD_SAMPLENAMELENGTH);
@@ -298,13 +296,13 @@ int MODModule::Init(::cz::io::File *in)
 		smp->volume = in->ReadUnsigned8();
 		smp->loopStart = (int)ReadBigEndianWord(in) * 2;
 		smp->loopLength = (int)ReadBigEndianWord(in) * 2;
-		CZLOG(LOG_INFO, "SAMPLE %d - Name=%s,  length=%d, fineTune=%d, volume=%d, loopStart=%d, loopLength=%d\n", numSample
+		CZMICROAUDIO_LOG(LogLevel::Log, "SAMPLE %d - Name=%s,  length=%d, fineTune=%d, volume=%d, loopStart=%d, loopLength=%d\n", numSample
 			, smp->name, (int)smp->length, (int)smp->fineTune, (int)smp->volume, (int)smp->loopStart, (int)smp->loopLength);
 	}
 
 	// number of orders (1 byte)
 	m_numOrders = in->ReadUnsigned8();
-	CZLOG(LOG_INFO, "Num of orders = %d\n", (int)m_numOrders);
+	CZMICROAUDIO_LOG(LogLevel::Log, "Num of orders = %d\n", (int)m_numOrders);
 	// discard unused byte ( song jump position???? )
 	in->ReadUnsigned8();
 	// Read pattern order, and calculate the number of patterns
@@ -312,20 +310,20 @@ int MODModule::Init(::cz::io::File *in)
 	in->ReadData(m_orders, MOD_NUMORDERS);
 	for (int i=0; i<MOD_NUMORDERS; i++) if (m_orders[i]>m_numPatterns) m_numPatterns = m_orders[i];
 	m_numPatterns++;
-	CZLOG(LOG_INFO, "Num of patterns = %d\n", (int)m_numPatterns);
+	CZMICROAUDIO_LOG(LogLevel::Log, "Num of patterns = %d\n", (int)m_numPatterns);
 
 	// Discard 4 bytes (we are at the tag position again)
 	in->ReadUnsigned32();
 
 	// Read pattern data
 	// Allocate memory for all our pattern data structure
-	m_packedPatternData = (MODPACKEDNOTE*) CZALLOC(sizeof(MODPACKEDNOTE)*m_numChannels*64*m_numPatterns);
-	if (m_packedPatternData==NULL) CZERROR(ERR_NOMEM);
+	m_packedPatternData = (MODPACKEDNOTE*) CZMICROAUDIO_ALLOC(sizeof(MODPACKEDNOTE)*m_numChannels*64*m_numPatterns);
+	if (m_packedPatternData==NULL) CZERROR(Error::OutOfMemory);
 
 	// Allocate memory for only one pattern to read from file
 	int filePatternSize = m_numChannels*4*64;
-	m_tempPatternData = (uint8_t*) CZALLOC(sizeof(uint8_t)*filePatternSize);
-	if (m_tempPatternData==NULL) CZERROR(ERR_NOMEM);
+	m_tempPatternData = (uint8_t*) CZMICROAUDIO_ALLOC(sizeof(uint8_t)*filePatternSize);
+	if (m_tempPatternData==NULL) CZERROR(Error::OutOfMemory);
 
 	// Read one pattern at a time, and pack the pattern data to the new structure, take takes only 3 bytes per note.
 	for (int pat=0; pat<m_numPatterns; pat++)
@@ -361,7 +359,7 @@ int MODModule::Init(::cz::io::File *in)
 				{
 					// If the note is out of range, also clear the sample
 					sample = 0;
-					CZLOG(LOG_WARNING,
+					CZMICROAUDIO_LOG(LogLevel::Warning,
 						"Note period out of supported range (%d), in pattern %d, row %d, channel %d \n",
 						period,
 						pat,
@@ -383,17 +381,17 @@ int MODModule::Init(::cz::io::File *in)
 
 	}
 	// Free the temporary buffer
-	CZFREE(m_tempPatternData);
+	CZMICROAUDIO_FREE(m_tempPatternData);
 	m_tempPatternData = NULL;
 
 	// Read sample data
 	for (numSample = 0; numSample<MOD_NUMSAMPLES; numSample++){
 		MODSAMPLE *smp = &m_samples[numSample];
 		if (smp->length>0) {
-			smp->snd = CZNEW(StaticSound) (m_core);
-			if (smp->snd==NULL) CZERROR(ERR_NOMEM);
+			smp->snd = CZMICROAUDIO_NEW(StaticSound);
+			if (smp->snd==NULL) CZERROR(Error::OutOfMemory);
 			int err= smp->snd->Set(SOUND_8BITS|SOUND_MONO|SOUND_SIGNED|SOUND_LOOP_OFF, smp->length);
-			if (err!=ERR_OK) CZERROR(err);
+			if (err!=Error::Success) CZERROR(static_cast<Error>(err));
 			in->ReadData(smp->snd->GetPtr(), smp->length);
 
 			smp->snd->SetLoopMode((smp->loopLength>2) ? SOUND_LOOP_NORMAL : SOUND_LOOP_OFF, smp->loopStart, smp->loopLength);
@@ -407,31 +405,31 @@ int MODModule::Init(::cz::io::File *in)
 			*/
 
 
-			CZLOG(LOG_INFO, "SAMPLE %d - %d bytes\n", numSample+1, smp->length);
+			CZMICROAUDIO_LOG(LogLevel::Log, "SAMPLE %d - %d bytes\n", numSample+1, smp->length);
 		}
 	}
 
 	// Make sure no bytes are left at the end of the file
 /*	int left = in->GetSize() - in->GetPos();
 	if (left!=0) {
-		CZLOG(LOG_WARNING, "%d Bytes left at the end of the file. Possible invalid MOD or loading BUG.", left);
-		CZERROR(ERR_WRONGFORMAT);
+		CZMICROAUDIO_LOG(LogLevel::Warning, "%d Bytes left at the end of the file. Possible invalid MOD or loading BUG.", left);
+		CZERROR(Error::WrongFormat);
 	}*/
 
 	m_loaded = true;
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 int MODModule::Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, uint8_t volume)
 {
-	if ((!m_loaded)||(m_isPlaying)) CZERROR(ERR_CANTRUN);
+	if ((!m_loaded)||(m_isPlaying)) CZERROR(Error::CantRun);
 
 	// Reserve the channels from the mixer
 	int fch = mixer->ReserveChannels(m_numChannels);
 	if (fch<0){
-		CZLOG(LOG_WARNING, "Not enough consecutive channels to play song. Requires %d channels\n", (int)m_numChannels);
-		CZERROR(fch);
+		CZMICROAUDIO_LOG(LogLevel::Warning, "Not enough consecutive channels to play song. Requires %d channels\n", (int)m_numChannels);
+		CZERROR(static_cast<Error>(fch));
 	}
 	m_firstMixerChannel = fch;
 
@@ -468,22 +466,22 @@ int MODModule::Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, uin
 	m_mixer->SetMasterVolume(volume, m_firstMixerChannel, m_numChannels);
 	m_isPlaying = true;
 	m_loop = loop;
-	return ERR_OK;
+	return Error::Success;
 }
 
 int MODModule::Stop(void)
 {
-	if ((!m_loaded)||(!m_isPlaying)) return ERR_OK;	
+	if ((!m_loaded)||(!m_isPlaying)) return Error::Success;	
 	for (int ch=m_firstMixerChannel; ch<m_firstMixerChannel+m_numChannels; ch++) m_mixer->SetVoiceStatus(ch, false);
 	m_mixer->FreeChannels(m_firstMixerChannel, m_numChannels);
 	m_isPlaying = false;
 	m_mixer = NULL;
-	return ERR_OK;
+	return Error::Success;
 }
 
 int MODModule::Pause(void)
 {
-	if ((m_isPaused)||(!m_loaded)||(!m_isPlaying)) return ERR_OK;	
+	if ((m_isPaused)||(!m_loaded)||(!m_isPlaying)) return Error::Success;	
 	for(int t=0; t<m_numChannels; t++){
 		if (m_mixer->IsVoiceON(m_tracks[t].mixerChannelUsed)){
 			m_mixer->SetVoiceStatus(m_tracks[t].mixerChannelUsed, false);
@@ -493,21 +491,21 @@ int MODModule::Pause(void)
 		}
 	}
 	m_isPaused = true;
-	return ERR_OK;
+	return Error::Success;
 }
 
 int MODModule::SetMasterVolume(uint8_t vol){
 	m_mixer->SetMasterVolume(vol, m_firstMixerChannel, m_numChannels);
-	return ERR_OK;
+	return Error::Success;
 }
 
 int MODModule::Resume(void){
-	if (!m_isPaused) return ERR_OK;	
+	if (!m_isPaused) return Error::Success;	
 	for(int t=0; t<m_numChannels; t++){
 		if (m_tracks[t].wasOnBeforePause) m_mixer->SetVoiceStatus(m_tracks[t].mixerChannelUsed, true);
 	}
 	m_isPaused=false;	
-	return ERR_OK;
+	return Error::Success;
 }
 
 void MODModule::DecodeRow(void)
@@ -1087,8 +1085,7 @@ int MODModule::GetSpeed(void) {
 	return m_speed;
 }
 
-} // namespace microaudio
-} // namespace cz
+} // namespace cz::microaudio
 
 
 #endif // CZMICROAUDIO_MOD_ENABLED

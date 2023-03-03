@@ -4,16 +4,13 @@
 // CrazyGaze Studios (www.crazygaze.com)
 //
 
-#ifndef _CZITMODULE_H_
-#define _CZITMODULE_H_
+#pragma once
 
 #include <crazygaze/microaudio/Module.h>
 
-namespace cz
+namespace cz::microaudio
 {
 
-namespace microaudio
-{
 
 // forward declarations
 class StaticSound;
@@ -330,7 +327,7 @@ class ITModule : public Module {
 	public:
 
 		//! Default constructor
-		ITModule(::cz::Core *parentObject);
+		ITModule();
 		//! Destructor
 		virtual ~ITModule();
 
@@ -358,12 +355,12 @@ class ITModule : public Module {
 		 * a new one every time a new song needs to be played.
 		 * 
 		 * \param in File to load from
-		 * \return ERR_OK on success, other on error.
+		 * \return Error::Success on success, other on error.
 		 * \sa czFile, Load
 		 */
-		int Init(::cz::io::File *in);
+		int Init(File *in);
 
-		static bool CheckFormat(::cz::io::File *in);
+		static bool CheckFormat(File *in);
 
         //! Sets mixing parameters
         /*!
@@ -398,7 +395,7 @@ class ITModule : public Module {
          *   A good compromise is a value of 1000 ms (1 second), but feel free to experiment with the targeted
          * devices
          *
-         * \return ERR_OK on success, other on error.
+         * \return Error::Success on success, other on error.
          */
 		//int SetMixingParameters(int frequency, bool stereo, bool bits16, int numChannels, int32_t bufferMs);
 
@@ -428,7 +425,7 @@ class ITModule : public Module {
          * \note
          *  Leaving the default parameters will play the entire song
 		 * 
-		 * \return ERR_OK on success, other on error
+		 * \return Error::Success on success, other on error
 		 * 
 		 * \sa Init, Stop
 		 */
@@ -454,13 +451,13 @@ class ITModule : public Module {
 
 		//! Advance the song to the next pattern while playing
 		/*!
-		 * \return ERR_OK on success, other on error
+		 * \return Error::Success on success, other on error
 		 */
 		//int Forward(void);
 		
 		//! Go backward, and play the previous pattern
 		/*!
-		 * \return ERR_OK on success, other on error
+		 * \return Error::Success on success, other on error
 		 */		
 		//int Backward(void);
 
@@ -564,11 +561,11 @@ private:
 	void CleanUpMemory(void);
 	void ResetMembers(void);
 
-	int ReadHeader(::cz::io::File *in);
-	int ReadInstruments(::cz::io::File *in);
-	int ReadEnvelope(::cz::io::File *in, IT_ENVELOPE *env);
-	int ReadSamples(::cz::io::File *in);
-	int ReadPatterns(::cz::io::File *in);
+	int ReadHeader(File *in);
+	int ReadInstruments(File *in);
+	int ReadEnvelope(File *in, IT_ENVELOPE *env);
+	int ReadSamples(File *in);
+	int ReadPatterns(File *in);
 
 	
 	// The number of channels used from Device
@@ -577,10 +574,4 @@ private:
 
 };
 
-
-} // namespace microaudio
-
-} // namespace cz
-
-
-#endif
+} // namespace cz::microaudio

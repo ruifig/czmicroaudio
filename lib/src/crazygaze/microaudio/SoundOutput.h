@@ -7,35 +7,20 @@
 // 
 //
 
-#ifndef _CZSOUNDOUTPUT_H_
-#define _CZSOUNDOUTPUT_H_
-
-/** \file */
-
-// forward declarations
-namespace cz
-{
-	namespace io
-	{
-		class File;
-	}
-}
+#pragma once
 
 #include <crazygaze/microaudio/Config.h>
-#include <crazygaze/microaudio/Object.h>
 #include <crazygaze/microaudio/Mixer.h>
 #include <crazygaze/microaudio/AudioPlayer.h>
 
-namespace cz
+namespace cz::microaudio
 {
-namespace microaudio
-{
-
 
 // forward declarations
 class StaticSound;
 class Module;
 class StreamSound;
+class File;
 
 enum SoundType
 {
@@ -78,10 +63,10 @@ typedef struct
 * \sa \link Play \endlink
 * \sa \link PlayModule \endlink
 */
-class SoundOutput : public ::cz::Object, public ::cz::microaudio::AudioPlayer
+class SoundOutput : public ::cz::microaudio::AudioPlayer
 {
 public:	
-	SoundOutput(::cz::Core *parentObject);
+	SoundOutput();
 	virtual ~SoundOutput();
 
 	//
@@ -139,7 +124,7 @@ public:
 	//virtual void* GetParent();
 
 protected:
-	friend ::cz::microaudio::AudioPlayer* ::cz::microaudio::AudioPlayer::Create(Core *core, AudioPlayerConfig *cfg/* =NULL */);
+	friend ::cz::microaudio::AudioPlayer* ::cz::microaudio::AudioPlayer::Create(AudioPlayerConfig *cfg/* =NULL */);
 	int FeedData(void *ptr, int numFrames);
 	void UpdateStatus(void);
 	virtual int Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits16, int freq );
@@ -159,10 +144,10 @@ private:
 	void UpdateModuleSound(SOUND_ST *st);
 	void UpdateStaticSound(SOUND_ST *st);
 
-	Module* LoadModule(::cz::io::File *in);
-	StaticSound* LoadWAV(::cz::io::File *in);
+	Module* LoadModule(File *in);
+	StaticSound* LoadWAV(File *in);
 #if CZMICROAUDIO_OGG_ENABLED
-	StreamSound* LoadStream(::cz::io::File *in);
+	StreamSound* LoadStream(File *in);
 #endif
 
 
@@ -181,7 +166,5 @@ public:
 
 };
 
-} // namespace microaudio
-} // namespace cz
+} // namespace cz::microaudio
 
-#endif

@@ -12,6 +12,7 @@
 #include <crazygaze/microaudio/Mixer.h>
 #include <crazygaze/microaudio/File.h>
 #include <crazygaze/microaudio/PlayerPrivateDefs.h>
+#include <crazygaze/microaudio/Memory.h>
 #include <cmath>
 
 
@@ -34,9 +35,7 @@
 #define ENTER_CRITICAL
 #define LEAVE_CRITICAL
 
-namespace cz
-{
-namespace microaudio
+namespace cz::microaudio
 {
 
 namespace
@@ -319,13 +318,13 @@ int ITModule::FeedData(void *ptr, int bytes)
 
 	int FREQUENCY = m_mixer->GetMixFrequency();
 
-	//CZLOG("FeedData %d samples\n", len);
+	//CZMICROAUDIO_LOG("FeedData %d samples\n", len);
 	
 	while(todo>0){
 		if (m_reachedEnd){
 			int done = ((len-todo)*m_samplesize)/8;
 			int left = bytes - done;
-			//CZLOG("****SONG END. BYTES REQUEST=%d DONE=%d \n", bytes, done);
+			//CZMICROAUDIO_LOG("****SONG END. BYTES REQUEST=%d DONE=%d \n", bytes, done);
 			// Silence the rest of the block
 			memset(&mx[pos], (Is16Bits()) ? 0:128 , left);
 			return done;
@@ -359,26 +358,26 @@ void ITModule::CleanUpMemory(void)
 	if (patterns!=NULL){
 		int count;
 		for (count=0;count< it_header.PatNum;count++)
-			if(patterns[count].data) CZFREE(patterns[count].data);
-		CZFREE(patterns);
+			if(patterns[count].data) CZMICROAUDIO_FREE(patterns[count].data);
+		CZMICROAUDIO_FREE(patterns);
 	}
 
 		
-	if (ChLastInfo!=NULL) CZFREE(ChLastInfo);
-	if (rowinfo!=NULL) CZFREE(rowinfo);
-	if (track!=NULL) CZFREE(track);
+	if (ChLastInfo!=NULL) CZMICROAUDIO_FREE(ChLastInfo);
+	if (rowinfo!=NULL) CZMICROAUDIO_FREE(rowinfo);
+	if (track!=NULL) CZMICROAUDIO_FREE(track);
 	
-	if (samples!=NULL) CZFREE(samples);
+	if (samples!=NULL) CZMICROAUDIO_FREE(samples);
 	if (waves!=NULL) {
 		for (int i=0; i< it_header.SmpNum; i++){
-			if(waves[i]!=NULL) CZDELETE(waves[i]);
+			if(waves[i]!=NULL) CZMICROAUDIO_DELETE(waves[i]);
 		}
-		CZFREE(waves);
+		CZMICROAUDIO_FREE(waves);
 	}
-	if (instruments!=NULL) CZFREE(instruments);
-	if (Orders!=NULL) CZFREE(Orders);
+	if (instruments!=NULL) CZMICROAUDIO_FREE(instruments);
+	if (Orders!=NULL) CZMICROAUDIO_FREE(Orders);
 	
-	if (virtualchannels!=NULL) CZFREE(virtualchannels);
+	if (virtualchannels!=NULL) CZMICROAUDIO_FREE(virtualchannels);
 
 }
 
@@ -423,7 +422,7 @@ void ITModule::ResetMembers(void)
  
 \sa Init()
 */
-ITModule::ITModule(::cz::Core *parentObject) : ::cz::microaudio::Module(parentObject)
+ITModule::ITModule()
 {
 	PROFILE();
 
@@ -443,14 +442,14 @@ ITModule::~ITModule()
 
 
 
-int ITModule::ReadHeader(::cz::io::File *in)
+int ITModule::ReadHeader(File *in)
 {
 	PROFILE();
 	
 	in->ReadData(&it_header.id[0], 4);
 	if ((memcmp("IMPM", it_header.id, 4)))
 	{
-		CZERROR(ERR_WRONGFORMAT);
+		CZERROR(Error::WrongFormat);
 	}
 
 	in->ReadData(&it_header.modname[0],26);
@@ -465,7 +464,7 @@ int ITModule::ReadHeader(::cz::io::File *in)
 	it_header.Special= in->ReadUnsigned16();
 	it_header.GV  = in->ReadUnsigned8();
 	it_header.MV  = in->ReadUnsigned8();
-    //CZLOG("\n\nMV=%d\n\n", (int)it_header.MV);
+    //CZMICROAUDIO_LOG("\n\nMV=%d\n\n", (int)it_header.MV);
 	it_header.IS  = in->ReadUnsigned8();
 	it_header.IT  = in->ReadUnsigned8();
 	it_header.Sep = in->ReadUnsigned8();
@@ -476,17 +475,17 @@ int ITModule::ReadHeader(::cz::io::File *in)
 	in->ReadData(&it_header.ChnlPan[0], 64);
 	in->ReadData(&it_header.ChnlVol[0], 64);
 
-	CZLOG(LOG_INFO, "ModName=%s\n", it_header.modname);
-	CZLOG(LOG_INFO, "OrdNum=%d ", it_header.OrdNum);
-	CZLOG(LOG_INFO, "InsNum=%d ", it_header.InsNum);
-	CZLOG(LOG_INFO, "SmpNum=%d ", it_header.SmpNum);
-	CZLOG(LOG_INFO, "PatNum=%d\n", it_header.PatNum);
+	CZMICROAUDIO_LOG(LogLevel::Log, "ModName=%s\n", it_header.modname);
+	CZMICROAUDIO_LOG(LogLevel::Log, "OrdNum=%d ", it_header.OrdNum);
+	CZMICROAUDIO_LOG(LogLevel::Log, "InsNum=%d ", it_header.InsNum);
+	CZMICROAUDIO_LOG(LogLevel::Log, "SmpNum=%d ", it_header.SmpNum);
+	CZMICROAUDIO_LOG(LogLevel::Log, "PatNum=%d\n", it_header.PatNum);
 
-	return ERR_OK;	
+	return Error::Success;	
 }
 
 
-int ITModule::ReadEnvelope(::cz::io::File *in, IT_ENVELOPE *env)
+int ITModule::ReadEnvelope(File *in, IT_ENVELOPE *env)
 {
 	PROFILE();
 	
@@ -502,30 +501,30 @@ int ITModule::ReadEnvelope(::cz::io::File *in, IT_ENVELOPE *env)
 	}
 	env->unused = in->ReadSigned8();
 	
-	return ERR_OK;	
+	return Error::Success;	
 }
 
-int ITModule::ReadInstruments(::cz::io::File *in)
+int ITModule::ReadInstruments(File *in)
 {
 	PROFILE();
 	
 	
 #if CZ_DEBUG
-	CZLOG(LOG_INFO, "Reading Instruments...\n");
-	CZLOG(LOG_INFO, "Number of instruments = %d\n", (int)it_header.InsNum);
-	if (it_header.InsNum>MAX_IT_INSTRUMENTS) CZERROR(ERR_WRONGFORMAT);
+	CZMICROAUDIO_LOG(LogLevel::Log, "Reading Instruments...\n");
+	CZMICROAUDIO_LOG(LogLevel::Log, "Number of instruments = %d\n", (int)it_header.InsNum);
+	if (it_header.InsNum>MAX_IT_INSTRUMENTS) CZERROR(Error::WrongFormat);
 #endif
 
 	int err;
 	
 	int dumptr[MAX_IT_INSTRUMENTS];
 	// read instrument offsets
-	if ((err=in->Seek(0xC0+it_header.OrdNum, ::cz::io::FILE_SEEK_START))!=ERR_OK) CZERROR(err);
-	if ((err=in->ReadData(dumptr, (int)it_header.InsNum*4))!=ERR_OK) CZERROR(err);
+	if ((err=in->Seek(0xC0+it_header.OrdNum, FILE_SEEK_START))!=Error::Success) CZERROR(static_cast<Error>(err));
+	if ((err=in->ReadData(dumptr, (int)it_header.InsNum*4))!=Error::Success) CZERROR(static_cast<Error>(err));
 
 	// Allocate memory for instruments
-	instruments = (IT_INSTRUMENT*) CZALLOC(sizeof(IT_INSTRUMENT)*it_header.InsNum);
-	if (instruments==NULL) CZERROR(ERR_NOMEM);
+	instruments = (IT_INSTRUMENT*) CZMICROAUDIO_ALLOC(sizeof(IT_INSTRUMENT)*it_header.InsNum);
+	if (instruments==NULL) CZERROR(Error::OutOfMemory);
 	CLEARARRAY(instruments, it_header.InsNum);
 			
 	// Read instruments
@@ -533,7 +532,7 @@ int ITModule::ReadInstruments(::cz::io::File *in)
 	{
 		IT_INSTRUMENT *inst = &instruments[count];
 		
-		if((err=in->Seek(dumptr[count], ::cz::io::FILE_SEEK_START))!=ERR_OK) CZERROR(err);
+		if((err=in->Seek(dumptr[count], FILE_SEEK_START))!=Error::Success) CZERROR(static_cast<Error>(err));
 		
 		in->ReadData(&inst->ID[0],4);
 		in->ReadData(&inst->FileName[0],12);
@@ -567,19 +566,19 @@ int ITModule::ReadInstruments(::cz::io::File *in)
 		ReadEnvelope(in, &inst->PitEnv);		
 	}	
 
-	return ERR_OK;	
+	return Error::Success;	
 }
 
 
-int ITModule::ReadSamples(::cz::io::File *in)
+int ITModule::ReadSamples(File *in)
 {
 	PROFILE();
 
 	
 #if CZ_DEBUG
-	CZLOG(LOG_INFO, "Reading Samples...\n");
-	CZLOG(LOG_INFO, "Number of samples = %d\n", (int)it_header.SmpNum);	
-	if (it_header.SmpNum > MAX_IT_SAMPLES) CZERROR(ERR_WRONGFORMAT);
+	CZMICROAUDIO_LOG(LogLevel::Log, "Reading Samples...\n");
+	CZMICROAUDIO_LOG(LogLevel::Log, "Number of samples = %d\n", (int)it_header.SmpNum);	
+	if (it_header.SmpNum > MAX_IT_SAMPLES) CZERROR(Error::WrongFormat);
 #endif
 		
 	IT_SAMPLE *smp;
@@ -591,19 +590,19 @@ int ITModule::ReadSamples(::cz::io::File *in)
 	int count;	
 	// read samples offsets
 	count=0xC0+(int)it_header.OrdNum+(int)it_header.InsNum*4;
-	if ((err=in->Seek(count, ::cz::io::FILE_SEEK_START))!=ERR_OK) goto ERROR_EXIT;
-	if ((err=in->ReadData(dumptr, (int)it_header.SmpNum*4))!=ERR_OK) goto ERROR_EXIT;
+	if ((err=in->Seek(count, FILE_SEEK_START))!=Error::Success) goto ERROR_EXIT;
+	if ((err=in->ReadData(dumptr, (int)it_header.SmpNum*4))!=Error::Success) goto ERROR_EXIT;
 
 	// Allocate memory for samples
-	samples = (IT_SAMPLE*) CZALLOC(sizeof(IT_SAMPLE)*it_header.SmpNum);
-	if (samples==NULL) CZERROR(ERR_NOMEM);
+	samples = (IT_SAMPLE*) CZMICROAUDIO_ALLOC(sizeof(IT_SAMPLE)*it_header.SmpNum);
+	if (samples==NULL) CZERROR(Error::OutOfMemory);
 	CLEARARRAY(samples, it_header.SmpNum);
 	
 		
 	// Read samples
 	for(count=0;count<it_header.SmpNum;count++)
 	{
-		if((err=in->Seek(dumptr[count], ::cz::io::FILE_SEEK_START))!=ERR_OK) goto ERROR_EXIT;
+		if((err=in->Seek(dumptr[count], FILE_SEEK_START))!=Error::Success) goto ERROR_EXIT;
 		IT_SAMPLE *smp = &samples[count];
 				
 		in->ReadData(&smp->ID[0], 4);
@@ -631,31 +630,31 @@ int ITModule::ReadSamples(::cz::io::File *in)
 	}	
 	
 	// Allocate memory for our own sound objects
-	waves = (StaticSound**) CZALLOC(sizeof(StaticSound*)*it_header.SmpNum);
+	waves = (StaticSound**) CZMICROAUDIO_ALLOC(sizeof(StaticSound*)*it_header.SmpNum);
 	memset(waves, 0, sizeof(StaticSound*) * it_header.SmpNum);
-	if (waves==NULL) CZERROR(ERR_NOMEM);
+	if (waves==NULL) CZERROR(Error::OutOfMemory);
 
 	for(int i=0;i<it_header.SmpNum;i++)
 	{
 		smp=&samples[i];
 		if (smp->Flg&SMP_IT_COMPRESSED)
 		{
-			CZLOG(LOG_ERROR, "IT 2.14 compressed samples not supported.");
-			CZERROR(ERR_WRONGFORMAT);
+			CZMICROAUDIO_LOG(LogLevel::Error, "IT 2.14 compressed samples not supported.");
+			CZERROR(Error::WrongFormat);
 		}
 
 		if ((smp->Flg&SMP_IT_SAMPLE)&&(smp->Length!=0)) // sample associated
 		{
 			// Only allocate StaticSound object when there is a sample associated
-			waves[i] = CZNEW(StaticSound) (m_core);
-			if (waves[i]==NULL) CZERROR(ERR_NOMEM);
+			waves[i] = CZMICROAUDIO_NEW(StaticSound);
+			if (waves[i]==NULL) CZERROR(Error::OutOfMemory);
 			wv = waves[i];
 		
 			// Used when decompressing a ADPCM sample
 			int8_t *uncompressedData=NULL;
 		
 			// Move to the sample data position first, because ADPCM format needs to read data
-			if((err=in->Seek(smp->SmpPtr, ::cz::io::FILE_SEEK_START))!=ERR_OK)
+			if((err=in->Seek(smp->SmpPtr, FILE_SEEK_START))!=Error::Success)
 				goto ERROR_EXIT;			
 			
 			int format=SOUND_LOOP_OFF|SOUND_MONO;		
@@ -676,28 +675,28 @@ int ITModule::ReadSamples(::cz::io::File *in)
 					break;
 				case 255: // 4-Bit ADPCM
 					{
-						CZLOG(LOG_INFO, "Reading 4-Bit ADPCM.\n");
+						CZMICROAUDIO_LOG(LogLevel::Log, "Reading 4-Bit ADPCM.\n");
 						format |= SOUND_8BITS|SOUND_SIGNED;					
 						int8_t compressionTable[16];
 						int adpcmLen = (smp->Length + 1) / 2;
 						// Read compression table at the beginning of sample
-						if((err=in->ReadData(compressionTable,16))!=ERR_OK)
+						if((err=in->ReadData(compressionTable,16))!=Error::Success)
 							goto ERROR_EXIT;
 							
 						// Allocate memory to uncompressed the sample
 						// add 1 extra byte, because odd lengths will need 1 extra byte
-						uncompressedData = (int8_t*) CZALLOC(sizeof(int8_t)*(smp->Length+1));
-						if (uncompressedData==NULL) CZERROR(ERR_NOMEM);
+						uncompressedData = (int8_t*) CZMICROAUDIO_ALLOC(sizeof(int8_t)*(smp->Length+1));
+						if (uncompressedData==NULL) CZERROR(Error::OutOfMemory);
 						// Allocate memory to read compressed data from file, to speed things up
-						uint8_t *compressedData = (uint8_t*) CZALLOC(sizeof(uint8_t)*adpcmLen);
-						if (compressedData==NULL) CZERROR(ERR_NOMEM);
+						uint8_t *compressedData = (uint8_t*) CZMICROAUDIO_ALLOC(sizeof(uint8_t)*adpcmLen);
+						if (compressedData==NULL) CZERROR(Error::OutOfMemory);
 					
 						int8_t *sptr = uncompressedData;
 						uint8_t *compressedPtr = compressedData;
 						int8_t delta = 0;
-						//CZLOG("Bytes to read from file = %d\n", adpcmLen);
+						//CZMICROAUDIO_LOG("Bytes to read from file = %d\n", adpcmLen);
 						// Read the compressed data into the temporary buffer
-						if((err=in->ReadData(compressedData,adpcmLen))!=ERR_OK)
+						if((err=in->ReadData(compressedData,adpcmLen))!=Error::Success)
 							goto ERROR_EXIT;					
 						for (int32_t j=0; j<adpcmLen; j++)
 						{
@@ -712,27 +711,27 @@ int ITModule::ReadSamples(::cz::io::File *in)
 							sptr += 2;
 						}
 						// Free the temporary buffer used to read the compressed data
-						CZFREE(compressedData);
+						CZMICROAUDIO_FREE(compressedData);
 					}
 					break;
 				default:
-					CZLOG(LOG_INFO, "Invalid sample format\n");
+					CZMICROAUDIO_LOG(LogLevel::Log, "Invalid sample format\n");
 					//User::Panic(_L("Invalid sample format"),3); 
 					exit(EXIT_FAILURE);
 					//vTerminateVMGP();
 					break;
 			}
 			
-			CZLOG(LOG_INFO, "Reading sample %d, C5Speed=%d, size (frames)=%d\n", i, smp->C5Speed, smp->Length);
-			if((err=wv->Set(format,smp->Length))!=ERR_OK)
+			CZMICROAUDIO_LOG(LogLevel::Log, "Reading sample %d, C5Speed=%d, size (frames)=%d\n", i, smp->C5Speed, smp->Length);
+			if((err=wv->Set(format,smp->Length))!=Error::Success)
 				goto ERROR_EXIT;
 			if (uncompressedData!=NULL){
 				// Its a APCM sample, and is already in memory
 				memcpy(wv->GetPtrToFrame(0), uncompressedData, lenBytes);
-				CZFREE(uncompressedData);
+				CZMICROAUDIO_FREE(uncompressedData);
 			} else {
 				// Normal sample
-				if((err=in->ReadData(wv->GetPtrToFrame(0),lenBytes))!=ERR_OK)
+				if((err=in->ReadData(wv->GetPtrToFrame(0),lenBytes))!=Error::Success)
 					goto ERROR_EXIT;
 
 				/*
@@ -787,22 +786,22 @@ int ITModule::ReadSamples(::cz::io::File *in)
 		}
 	}
 
-return ERR_OK;
+	return Error::Success;
 
 	ERROR_EXIT:
-	CZERROR(err);
+	CZERROR(static_cast<Error>(err));
 }
 
 
 
-int ITModule::ReadPatterns(::cz::io::File *in)
+int ITModule::ReadPatterns(File *in)
 {
 	PROFILE();
 	
 #if CZ_DEBUG
-	CZLOG(LOG_INFO, "Reading patterns...\n");
-	CZLOG(LOG_INFO, "Number of patterns = %d\n", (int)it_header.PatNum);
-	if (it_header.PatNum>MAX_IT_PATTERNS) CZERROR(ERR_WRONGFORMAT);
+	CZMICROAUDIO_LOG(LogLevel::Log, "Reading patterns...\n");
+	CZMICROAUDIO_LOG(LogLevel::Log, "Number of patterns = %d\n", (int)it_header.PatNum);
+	if (it_header.PatNum>MAX_IT_PATTERNS) CZERROR(Error::WrongFormat);
 #endif
 
 	int dumptr[MAX_IT_PATTERNS];
@@ -811,12 +810,12 @@ int ITModule::ReadPatterns(::cz::io::File *in)
 	int count;	
 	// read patterns offsets
 	count=0xC0+(int)it_header.OrdNum+(int)it_header.InsNum*4+(int)it_header.SmpNum*4;
-	if ((err=in->Seek(count, ::cz::io::FILE_SEEK_START))!=ERR_OK) goto ERROR_EXIT;
-	if ((err=in->ReadData(dumptr, (int)it_header.PatNum*4))!=ERR_OK) goto ERROR_EXIT;
+	if ((err=in->Seek(count, FILE_SEEK_START))!=Error::Success) goto ERROR_EXIT;
+	if ((err=in->ReadData(dumptr, (int)it_header.PatNum*4))!=Error::Success) goto ERROR_EXIT;
 
 	// Allocate memory for patterns's array
-	patterns = (IT_PATTERN*) CZALLOC(sizeof(IT_PATTERN)*it_header.PatNum);
-	if (patterns==NULL) CZERROR(ERR_NOMEM);
+	patterns = (IT_PATTERN*) CZMICROAUDIO_ALLOC(sizeof(IT_PATTERN)*it_header.PatNum);
+	if (patterns==NULL) CZERROR(Error::OutOfMemory);
 	CLEARARRAY(patterns, it_header.PatNum);
 
 	// Read patterns
@@ -828,7 +827,7 @@ int ITModule::ReadPatterns(::cz::io::File *in)
 			pat->Rows=64;
 			pat->data=NULL;
 		}else{
-			if ((err=in->Seek(dumptr[count], ::cz::io::FILE_SEEK_START))!=ERR_OK) goto ERROR_EXIT;
+			if ((err=in->Seek(dumptr[count], FILE_SEEK_START))!=Error::Success) goto ERROR_EXIT;
 			
 			pat->Length = in->ReadUnsigned16();
 			pat->Rows   = in->ReadUnsigned16();
@@ -839,28 +838,28 @@ int ITModule::ReadPatterns(::cz::io::File *in)
 			// read pattern data		
 			int len=pat->Length;
 			if(len!=0){
-				pat->data=(unsigned char *) CZALLOC(sizeof(char)*len);
+				pat->data=(unsigned char *) CZMICROAUDIO_ALLOC(sizeof(char)*len);
 				if(pat->data==NULL){
-					err=ERR_NOMEM;
+					err=Error::OutOfMemory;
 					goto ERROR_EXIT;
 				}
-				if ((err=in->ReadData(pat->data,len))!=ERR_OK) goto ERROR_EXIT;
+				if ((err=in->ReadData(pat->data,len))!=Error::Success) goto ERROR_EXIT;
 			}			
 		}
 		
 	}
 
-	return ERR_OK;
+	return Error::Success;
 
 	ERROR_EXIT:
-	CZERROR(err);
+	CZERROR(static_cast<Error>(err));
 }
 
 int ITModule::Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, uint8_t volume){
 
 	PROFILE();
 
-	if ((!Loaded)||(IsPlaying)) CZERROR(ERR_CANTRUN);
+	if ((!Loaded)||(IsPlaying)) CZERROR(Error::CantRun);
 	
 	// Virtual channels are only allocated here, because only here we have the m_mixer object available
 	// Allocate only if needed (no other previous and suitable allocation made)
@@ -868,13 +867,13 @@ int ITModule::Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, uint
 		// Allocate virtual channels
 		m_numVirtualChannels=mixer->GetChannels();
 		// Allocate memory for the virtual channels
-		if (virtualchannels!=NULL) CZFREE(virtualchannels);
-		virtualchannels = (VIRTUALCHANNEL*) CZALLOC(sizeof(VIRTUALCHANNEL)*m_numVirtualChannels);
-		if (virtualchannels==NULL) CZERROR(ERR_NOMEM);	
+		if (virtualchannels!=NULL) CZMICROAUDIO_FREE(virtualchannels);
+		virtualchannels = (VIRTUALCHANNEL*) CZMICROAUDIO_ALLOC(sizeof(VIRTUALCHANNEL)*m_numVirtualChannels);
+		if (virtualchannels==NULL) CZERROR(Error::OutOfMemory);	
 		CLEARARRAY(virtualchannels, m_numVirtualChannels);
 	}
 
-//	if (mixer->GetChannels() < m_numVirtualChannels) CZERROR(ERR_INVPAR);
+//	if (mixer->GetChannels() < m_numVirtualChannels) CZERROR(Error::InvalidParameter);
 
 //	m_firstMixerChannel=0;
 
@@ -891,44 +890,44 @@ int ITModule::Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, uint
 		SetPlayRange(firstOrder, lastOrder);
 	}
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 
-bool ITModule::CheckFormat(::cz::io::File *in)
+bool ITModule::CheckFormat(File *in)
 {
 	int pos = in->GetPos();
-	in->Seek(0, ::cz::io::FILE_SEEK_START);
+	in->Seek(0, FILE_SEEK_START);
 	char buf[4];
 	in->ReadData(buf, 4);
-	in->Seek(pos, ::cz::io::FILE_SEEK_START);
+	in->Seek(pos, FILE_SEEK_START);
 	return (memcmp("IMPM", buf, 4)==0) ? true : false;
 }
 
 
-int ITModule::Init(::cz::io::File *in)
+int ITModule::Init(File *in)
 {	
 	PROFILE();
 	
 	int err;
 
-	if(IsPlaying) CZERROR(ERR_CANTRUN);
+	if(IsPlaying) CZERROR(Error::CantRun);
 
 	CleanUpMemory();
 	ResetMembers();
         
-	if ((err=ReadHeader(in))!=ERR_OK) goto ERROR_EXIT;
+	if ((err=ReadHeader(in))!=Error::Success) goto ERROR_EXIT;
 	
 	// Read ORDER
-	if ((err=in->Seek(0xC0, ::cz::io::FILE_SEEK_START))!=ERR_OK) goto ERROR_EXIT;	
+	if ((err=in->Seek(0xC0, FILE_SEEK_START))!=Error::Success) goto ERROR_EXIT;	
 #if CZ_DEBUG
-	CZLOG(LOG_INFO, "Number of orders = %d\n", (int)it_header.OrdNum);
+	CZMICROAUDIO_LOG(LogLevel::Log, "Number of orders = %d\n", (int)it_header.OrdNum);
 #endif	
 	// Allocate memory for orders
-	Orders = (unsigned char*) CZALLOC(sizeof(unsigned char)*it_header.OrdNum);
-	if (Orders == NULL) CZERROR(ERR_NOMEM);
+	Orders = (unsigned char*) CZMICROAUDIO_ALLOC(sizeof(unsigned char)*it_header.OrdNum);
+	if (Orders == NULL) CZERROR(Error::OutOfMemory);
 	// Read from file
-	if ((err=in->ReadData(&Orders[0], it_header.OrdNum))!=ERR_OK) goto ERROR_EXIT;               
+	if ((err=in->ReadData(&Orders[0], it_header.OrdNum))!=Error::Success) goto ERROR_EXIT;               
 
 		
 	/*
@@ -936,15 +935,15 @@ int ITModule::Init(::cz::io::File *in)
 	 */
 	// read instrument offsets
 	if (it_header.InsNum==0) goto NO_INSTRUMENTS_TO_READ;
-	if ((err=ReadInstruments(in))!=ERR_OK) goto ERROR_EXIT;
+	if ((err=ReadInstruments(in))!=Error::Success) goto ERROR_EXIT;
 
 NO_INSTRUMENTS_TO_READ:
 
 	// Read Samples
-	if ((err=ReadSamples(in))!=ERR_OK) goto ERROR_EXIT;
+	if ((err=ReadSamples(in))!=Error::Success) goto ERROR_EXIT;
 
 	// Read Patterns
-	if ((err=ReadPatterns(in))!=ERR_OK) goto ERROR_EXIT;
+	if ((err=ReadPatterns(in))!=Error::Success) goto ERROR_EXIT;
 	
 	if (it_header.Flags&4)
 		InstrumentMode=1;
@@ -984,7 +983,7 @@ NO_INSTRUMENTS_TO_READ:
 				packPos = GetITRow(patnum, packPos);
 				if (packPos==0)
 				{
-					CZLOG(LOG_INFO, "ERROR: Error decoding pattern data");
+					CZMICROAUDIO_LOG(LogLevel::Log, "ERROR: Error decoding pattern data");
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -1011,22 +1010,22 @@ NO_INSTRUMENTS_TO_READ:
 		rowinfo = nullptr;
 		it_channels = topChannelWithData + 1;
 	}
-	CZLOG(LOG_INFO, "CHANNELS=%d\n", it_channels);
+	CZMICROAUDIO_LOG(LogLevel::Log, "CHANNELS=%d\n", it_channels);
 
 	for (int ch = 0; ch < it_channels; ch++)
 	{
 		if ((it_header.ChnlPan[ch] > 100) && (it_header.ChnlPan[ch] != 255)) {
-			CZLOG(LOG_INFO, "ERROR: IT file has surround channels, or disabled channels.\n");
+			CZMICROAUDIO_LOG(LogLevel::Log, "ERROR: IT file has surround channels, or disabled channels.\n");
 			//User::Panic(_L("Unsupported channel types"), 3);
 			exit(EXIT_FAILURE);
 		}
 	}
 
 	// Alloc arrays of size [it_channels]
-	ChLastInfo = (IT_CHANNEL_LAST_INFO*) CZALLOC(sizeof(IT_CHANNEL_LAST_INFO)*it_channels);	
-	rowinfo = (IT_NOTE*) CZALLOC(sizeof(IT_NOTE)*it_channels);
-	track = (TRACK*) CZALLOC(sizeof(TRACK)*it_channels);	
-	if ((ChLastInfo==NULL)||(rowinfo==NULL)||(track==NULL)) CZERROR(ERR_NOMEM);
+	ChLastInfo = (IT_CHANNEL_LAST_INFO*) CZMICROAUDIO_ALLOC(sizeof(IT_CHANNEL_LAST_INFO)*it_channels);	
+	rowinfo = (IT_NOTE*) CZMICROAUDIO_ALLOC(sizeof(IT_NOTE)*it_channels);
+	track = (TRACK*) CZMICROAUDIO_ALLOC(sizeof(TRACK)*it_channels);	
+	if ((ChLastInfo==NULL)||(rowinfo==NULL)||(track==NULL)) CZERROR(Error::OutOfMemory);
 	
 	CLEARARRAY(ChLastInfo, it_channels);
 	CLEARARRAY(rowinfo, it_channels);
@@ -1037,12 +1036,12 @@ NO_INSTRUMENTS_TO_READ:
 #if CZ_DEBUG
 	for (int i=0; i<it_header.InsNum; i++){
 		IT_INSTRUMENT *inst = &instruments[i];
-		CZLOG(LOG_INFO, "Instrument %d = %s\n", i, inst->InsName);
+		CZMICROAUDIO_LOG(LogLevel::Log, "Instrument %d = %s\n", i, inst->InsName);
 		int n=0;
 		for (n=0; n< inst->VolEnv.Num; n++)
-			CZLOG(LOG_INFO, "VolEnv.Node[%d]={%d,%d}\n", n, (int)inst->VolEnv.Nodes[n].y, (int)inst->VolEnv.Nodes[n].tick);
+			CZMICROAUDIO_LOG(LogLevel::Log, "VolEnv.Node[%d]={%d,%d}\n", n, (int)inst->VolEnv.Nodes[n].y, (int)inst->VolEnv.Nodes[n].tick);
 		for (n=0; n< inst->PanEnv.Num; n++)
-			CZLOG(LOG_INFO, "PanEnv.Node[%d]={%d,%d}\n", n, (int)inst->PanEnv.Nodes[n].y, (int)inst->PanEnv.Nodes[n].tick);
+			CZMICROAUDIO_LOG(LogLevel::Log, "PanEnv.Node[%d]={%d,%d}\n", n, (int)inst->PanEnv.Nodes[n].y, (int)inst->PanEnv.Nodes[n].tick);
 	}
 #endif // CZ_DEBUG
 	
@@ -1050,11 +1049,11 @@ NO_INSTRUMENTS_TO_READ:
     
     // Set play range to all
     Loaded=1;
-    CZLOG(LOG_INFO, "IT File loaded with sucess.\n");
-    return ERR_OK;
+    CZMICROAUDIO_LOG(LogLevel::Log, "IT File loaded with sucess.\n");
+    return Error::Success;
     
     ERROR_EXIT:
-    CZERROR(err);
+    CZERROR(static_cast<Error>(err));
 }
 
 int ITModule::SetPlayRange(int firstOrder, int lastOrder)
@@ -1062,9 +1061,9 @@ int ITModule::SetPlayRange(int firstOrder, int lastOrder)
 	PROFILE();
 	
 #if CZ_DEBUG
-	if (!Loaded) CZERROR(ERR_CANTRUN);
-//	if ((nch<1)||(nch>m_mixer->GetChannels())) CZERROR(ERR_INVPAR);
-    if (virtualchannels==NULL) CZERROR(ERR_CANTRUN);
+	if (!Loaded) CZERROR(Error::CantRun);
+//	if ((nch<1)||(nch>m_mixer->GetChannels())) CZERROR(Error::InvalidParameter);
+    if (virtualchannels==NULL) CZERROR(Error::CantRun);
 #endif
     if (IsPlaying){
         Stop();
@@ -1113,15 +1112,15 @@ int ITModule::SetPlayRange(int firstOrder, int lastOrder)
 		//czSoundDevice::SetPlayer(this);
 	}
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 int ITModule::Stop(void)
 {
 	PROFILE();	
 
-	//if((!IsPlaying)||(!Loaded)) CZERROR(ERR_CANTRUN);
-    if((!IsPlaying)||(!Loaded)) return ERR_OK;
+	//if((!IsPlaying)||(!Loaded)) CZERROR(Error::CantRun);
+    if((!IsPlaying)||(!Loaded)) return Error::Success;
 
 	int count;
 	//czSoundDevice::SetPlayer(NULL);
@@ -1129,14 +1128,14 @@ int ITModule::Stop(void)
 		KillChannel(count);
 	}
 	IsPlaying=0;   
-	return ERR_OK;
+	return Error::Success;
 }
 
 int ITModule::Pause(void)
 {
 	PROFILE();
 
-	if (!Loaded) CZERROR(ERR_OK);
+	if (!Loaded) CZERROR(Error::Success);
 
 	for (int c=0; c<m_numVirtualChannels;c++){
 		if (virtualchannels[c].active){
@@ -1150,11 +1149,11 @@ int ITModule::Pause(void)
 	}
 	IsPaused=1;
 
-	return ERR_OK;
+	return Error::Success;
 }       	
 
 int ITModule::Resume(void){
-	if (!IsPaused) return ERR_OK;	
+	if (!IsPaused) return Error::Success;	
 
 	for(int c=0;c<m_numVirtualChannels;c++){
 		if ((virtualchannels[c].active)&&(virtualchannels[c].paused)){
@@ -1164,7 +1163,7 @@ int ITModule::Resume(void){
 	}
 	IsPaused=0;
 
-	return ERR_OK;
+	return Error::Success;
 
 }
 /***************************************************************************
@@ -1757,12 +1756,12 @@ void ITModule::ProcessEffects(int channel)
 	if(FirstTick){
 		switch (note){
 			case 254: // Notecut
-//				CZLOG("NoteCut vchannel=%d\n", (int)trk->vchannel);
+//				CZMICROAUDIO_LOG("NoteCut vchannel=%d\n", (int)trk->vchannel);
 				if(trk->active)
 					KillChannel(trk->vchannel);
 				break;
 			case 255: // noteoff
-//				CZLOG("NoteOff vchannel=%d\n", (int)trk->vchannel);
+//				CZMICROAUDIO_LOG("NoteOff vchannel=%d\n", (int)trk->vchannel);
 				if(trk->active)
 					DoNoteOff(trk->vchannel);
 				break;
@@ -2401,7 +2400,7 @@ inline fixed16_16 Interpolate(int y1, int y2, int x1, int x2)
 {
 	//PROFILE();
 		
-//	CZLOG("Interpolate (%d-%d)/(%d-%d)\n", y2,y1,x2,x1);
+//	CZMICROAUDIO_LOG("Interpolate (%d-%d)/(%d-%d)\n", y2,y1,x2,x1);
 
 	y1 = FIX16_16(y1);
 	y2 = FIX16_16(y2);
@@ -2412,7 +2411,7 @@ inline fixed16_16 Interpolate(int y1, int y2, int x1, int x2)
 		return FDIV16_16((y2-y1), (x2-x1));
 	}
 	else{
-//		CZLOG("Y1=%d Y2=%d X1=%d X2=%d\n", y1, y2, x1, x2);
+//		CZMICROAUDIO_LOG("Y1=%d Y2=%d X1=%d X2=%d\n", y1, y2, x1, x2);
 		return FDIV16_16((y2-y1), FIX16_16(1));
 //		return 0;		
 	}
@@ -2450,7 +2449,7 @@ void ITModule::UpdateEnvelope(IT_ENVELOPE *env, ENVCONTROL *ctrl)
 			// If there is no more nodes, and not in loop mode, then just disable envelope, and exit
 			if(!ctrl->loop){
 				// No loop, so the val stays equal to the last node
-				//CZLOG("Reached end of envelope...\n");
+				//CZMICROAUDIO_LOG("Reached end of envelope...\n");
 				ctrl->flag=0;
 				ctrl->val_ = FIX16_16(env->Nodes[ctrl->endNode].y);
 				return;
@@ -2470,7 +2469,7 @@ void ITModule::UpdateEnvelope(IT_ENVELOPE *env, ENVCONTROL *ctrl)
 		// If we don't need to advance the node, just update some variables
 		ctrl->val_+=ctrl->inc_;
 		ctrl->ticksToNextNode--;
-//		CZLOG("ctrl->val=%d\n", (int)ctrl->val_ >> 16);
+//		CZMICROAUDIO_LOG("ctrl->val=%d\n", (int)ctrl->val_ >> 16);
 	}
 	
 }
@@ -2494,7 +2493,7 @@ void ITModule::PrepareEnvelope(uint8_t keyon,IT_ENVELOPE *env, ENVCONTROL *ctrl)
 
 	// Is a envelope restart
 	if(ctrl->flag==-1){	 
-		// CZLOG("PrepareEnvelope Envelope Restart\n");
+		// CZMICROAUDIO_LOG("PrepareEnvelope Envelope Restart\n");
 		ctrl->currentNode = 0;
 		ctrl->repeatNode = 0;
 		ctrl->endNode = env->Num-1;
@@ -3084,16 +3083,13 @@ int ITModule::SetMasterVolume(uint8_t vol){
 	for (int i=0;i<m_numVirtualChannels;i++){
 		if (virtualchannels[i].active) m_mixer->SetMasterVolume(vol, i, 1);
 	}
-	return ERR_OK;
+	return Error::Success;
 }
 
 #endif // CZMICROAUDIO_EXTRAFUNCTIONS_ENABLED
 
 
-
-} // namespace microaudio
-} // namespace cz
-
+} // namespace cz::microaudio
 
 
 #endif // CZMICROAUDIO_IT_ENABLED

@@ -9,17 +9,17 @@
 
 #include <crazygaze/microaudio/StaticSound.h>
 #include <crazygaze/microaudio/PlayerPrivateDefs.h>
+#include <crazygaze/microaudio/Core.h>
+#include <crazygaze/microaudio/Memory.h>
 
-namespace cz
-{
-namespace microaudio
+namespace cz::microaudio
 {
 
 // Constructor to czStaticSound objects.
 /*
 It simply initializes some private variables
 */
-StaticSound::StaticSound(::cz::Core *parentObject) : ::cz::Object(parentObject)
+StaticSound::StaticSound()
 {	
 	PROFILE();
 
@@ -44,7 +44,7 @@ StaticSound::~StaticSound()
 {
 	PROFILE();
 
-	if(m_startptr!=NULL) CZFREE(m_startptr);
+	if(m_startptr!=NULL) CZMICROAUDIO_FREE(m_startptr);
 }
 
 /* Calculates the samplesize */	
@@ -68,14 +68,14 @@ int StaticSound::SetDefaults(int freq, int vol, int pan)
 		m_frequency = freq;
 	}
 	if (vol!=-1){
-		if (!INRANGE(vol, 0, AUDIO_VOL_MAX)) CZERROR(ERR_INVPAR);
+		if (!INRANGE(vol, 0, AUDIO_VOL_MAX)) CZERROR(Error::InvalidParameter);
 		m_vol = (uint8_t)vol;
 	}
 	if (pan!=-1){
-		if (!INRANGE(pan, AUDIO_PAN_LEFT, AUDIO_PAN_RIGHT)) CZERROR(ERR_INVPAR);
+		if (!INRANGE(pan, AUDIO_PAN_LEFT, AUDIO_PAN_RIGHT)) CZERROR(Error::InvalidParameter);
 		m_pan = (uint8_t)pan;
 	}
-	return ERR_OK;
+	return Error::Success;
 }
 
 void StaticSound::GetLoopMode(int *loopMode, int *loopStart, int *loopLength)
@@ -105,7 +105,7 @@ int StaticSound::Set(int form, int frames)
 		((checkSign!=SOUND_SIGNED)&&(checkSign!=SOUND_UNSIGNED)) ||
 		((checkLoop!=SOUND_LOOP_OFF)&&(checkLoop!=SOUND_LOOP_NORMAL)&&(checkLoop!=SOUND_LOOP_BIDI))
 		){
-		CZERROR(ERR_INVPAR);	
+		CZERROR(Error::InvalidParameter);	
 	}
 
 	m_format=form;
@@ -125,14 +125,14 @@ int StaticSound::Set(int form, int frames)
 
 	// Free the memory, if calling this function more than once
 	if (m_startptr != NULL){
-		CZFREE(m_startptr);
+		CZMICROAUDIO_FREE(m_startptr);
 	}
 
 	int safetyAreaBytes = (SOUND_SAFETYAREA*m_framesize)/8;
 	m_allocatedSize = sizeof(uint8_t) * (m_length+(safetyAreaBytes*2)); 
-	m_startptr = (uint8_t*) CZALLOC(m_allocatedSize);
+	m_startptr = (uint8_t*) CZMICROAUDIO_ALLOC(m_allocatedSize);
 	if (m_startptr==NULL){
-		CZERROR(ERR_NOMEM);
+		CZERROR(Error::OutOfMemory);
 	}	
 	m_dptr = (uint8_t*)m_startptr + safetyAreaBytes;
 	SetToSilence();
@@ -140,7 +140,7 @@ int StaticSound::Set(int form, int frames)
 	m_loopStart = 0;
 	m_loopLength = m_frames;
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 void StaticSound::SmoothLoop(void)
@@ -191,13 +191,11 @@ void StaticSound::SmoothLoop(void)
 	out.WriteData(m_startptr, m_length+(SAFETYAREA*2)*frameSizeBytes);
 	out.Close();
 	*/
-
-
 }
 
 int StaticSound::SetLoopMode(int loopMode, int loopStart, int loopLength)
 {	
-	if (loopStart+loopLength > m_frames) CZERROR(ERR_INVPAR);
+	if (loopStart+loopLength > m_frames) CZERROR(Error::InvalidParameter);
 
 	// Turn off all the bits for loops
 	m_format &= ~(SOUND_LOOP_OFF|SOUND_LOOP_NORMAL|SOUND_LOOP_BIDI);
@@ -205,14 +203,14 @@ int StaticSound::SetLoopMode(int loopMode, int loopStart, int loopLength)
 	m_format |= loopMode;
 	m_loopStart = loopStart;
 	m_loopLength = loopLength;
-	return ERR_OK;
+	return Error::Success;
 }
 
 int StaticSound::ChangeSign(void)
 {
 	PROFILE();
 
-	if(m_frames==0) CZERROR(ERR_CANTRUN);
+	if(m_frames==0) CZERROR(Error::CantRun);
 	if(IsSigned()){
 		m_format&=~SOUND_SIGNED;
 	} else {
@@ -235,7 +233,7 @@ int StaticSound::ChangeSign(void)
 		}
 	}
 
-	return ERR_OK;				
+	return Error::Success;				
 }		
 
 void StaticSound::SetToSilence()
@@ -246,5 +244,5 @@ void StaticSound::SetToSilence()
 	memset(m_startptr, 0, m_allocatedSize);
 }
 
-} // namespace microaudio
-} // namespace cz
+} // namespace cz::microaudio
+

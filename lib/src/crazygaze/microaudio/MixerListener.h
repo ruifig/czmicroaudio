@@ -7,12 +7,9 @@
 // 
 //
 
-#ifndef _CZMIXER_LISTENER_H
-#define _CZMIXER_LISTENER_H
+#pragma once
 
-namespace cz
-{
-namespace microaudio
+namespace cz::microaudio
 {
 
 	class ChannelMixingListener
@@ -28,7 +25,5 @@ namespace microaudio
 	};
 
 }
-}
 
-#endif
 

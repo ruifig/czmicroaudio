@@ -9,16 +9,12 @@
 // 
 //
 
-#ifndef _CZWIN32WAVEOUTOUTPUT_H_
-#define _CZWIN32WAVEOUTOUTPUT_H_
+#pragma once
 
 #include <crazygaze/microaudio/PlayerPrivateDefs.h>
 #include <crazygaze/microaudio/SoundOutput.h>
-#include <memory>
 
-namespace cz
-{
-namespace microaudio
+namespace cz::microaudio
 {
 
 // Using Pimpl pattern do we don't need add Windows's Mmsystem.h to the global scope
@@ -29,7 +25,7 @@ class Win32WaveOutOutput : public SoundOutput
 
 public:
 
-	Win32WaveOutOutput(::cz::Core *parentObject);
+	Win32WaveOutOutput();
 	virtual ~Win32WaveOutOutput();
 	virtual int Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits16, int freq ) override;
 	virtual void PauseOutput(bool freeResources) override;
@@ -39,7 +35,6 @@ public:
 	using SoundOutput::FeedData;
 	using SoundOutput::UpdateStatus;
 	using SoundOutput::InitSoftwareMixerOutput;
-	using Object::m_core;
 
 private:
 	virtual void LockMixer() override;
@@ -48,7 +43,5 @@ private:
 	Win32WaveOutOutputImpl* m_impl = nullptr;
 };
 
-} // namespace microaudio
-} // namespace cz
+} // namespace cz::microaudio
 
-#endif

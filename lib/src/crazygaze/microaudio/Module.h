@@ -7,28 +7,17 @@
 // Base class for Modules (MOD, IT, etc)
 //
 
-#ifndef _CZMODULE_H_
-#define _CZMODULE_H_
+#pragma once
 
-#include <crazygaze/microaudio/Object.h>
+#include <crazygaze/microaudio/Core.h>
 
-// forward declarations
-namespace cz
-{
-	namespace io
-	{
-		class File;
-	}
-}
-
-namespace cz
-{
-namespace microaudio
+namespace cz::microaudio
 {
 
 // forward declarations
 class SoundOutput;
 class Mixer;
+class File;
 
 //! Base class for Module sounds. eg : MOD files
 /*!
@@ -38,16 +27,16 @@ class Mixer;
  * \sa \link czPlayer::LoadModule \endlink
  * \sa \link czSoundOutput::PlayModule \endlink
  */
-class Module : public ::cz::Object
+class Module
 {
 
 
 public:
-	Module(::cz::Core *parentObject);
+	Module();
 	virtual ~Module();
 
 	// Load the song
-	virtual int Init(::cz::io::File *in) = 0;
+	virtual int Init(File *in) = 0;
 
 	int GetBPM(void)
 	{
@@ -93,9 +82,5 @@ protected :
 
 };
 
-
-} // namespace cz
-} // namespace cz
-
-#endif
+} // namespace cz::microaudio
 

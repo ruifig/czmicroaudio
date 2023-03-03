@@ -7,29 +7,17 @@
 // 
 //
 
-#ifndef _CZMODMODULE_H_
-#define _CZMODMODULE_H_
+#pragma once
 
 #include <crazygaze/microaudio/Module.h>
 #include <crazygaze/microaudio/Audio.h>
 
-// forward declarations
-namespace cz
-{
-	namespace io
-	{
-		class File;
-	}
-}
-
-
-namespace cz
-{
-namespace microaudio
+namespace cz::microaudio
 {
 
 // forward declarations
 class StaticSound;
+class File;
 
 enum
 {
@@ -128,13 +116,13 @@ class MODModule : public Module {
 public:
 
 	//! Default constructor
-	MODModule(::cz::Core *parentObject);
+	MODModule();
 	//! Destructor
 	virtual ~MODModule();
 
 	// Load the song
-	int Init(::cz::io::File *in);
-	static bool CheckFormat(::cz::io::File *in);
+	int Init(File *in);
+	static bool CheckFormat(File *in);
 
 	int Start(Mixer *mixer, int firstOrder, int lastOrder, bool loop, uint8_t volume=AUDIO_MASTERVOL_DEFAULT);
 	int Stop(void);
@@ -207,7 +195,5 @@ private:
 	void DoPortamentoDown(MODTRACK *trk, bool fine=false);
 };
 
-} // namespace microaudio
-} // namespace cz
+} // namespace cz::microaudio
 
-#endif

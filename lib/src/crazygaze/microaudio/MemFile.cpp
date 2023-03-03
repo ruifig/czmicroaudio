@@ -9,13 +9,12 @@
 
 #include <crazygaze/microaudio/MemFile.h>
 #include <crazygaze/microaudio/PlayerPrivateDefs.h>
+#include <crazygaze/microaudio/Memory.h>
 
-namespace cz
-{
-namespace io
+namespace cz::microaudio
 {
 
-MemFile::MemFile(::cz::Core *parentObject) : File(parentObject)
+MemFile::MemFile()
 {	
 	m_pos = 0;
 	m_memPtr = NULL;
@@ -35,7 +34,7 @@ int MemFile::Open(uint8_t *ptr, int size, bool transferOwnership)
 	m_pos = 0;
 	m_isOpen = true;
 	m_ownsMemory = transferOwnership;
-	return ERR_OK;	
+	return Error::Success;	
 }
 
 int MemFile::Close(void)
@@ -43,12 +42,12 @@ int MemFile::Close(void)
 	if (m_isOpen){
 		if (m_ownsMemory)
 		{
-			CZFREE(m_memPtr);
+			CZMICROAUDIO_FREE(m_memPtr);
 		}
 		m_memPtr = NULL;
 		m_isOpen = false;
 	}
-	return ERR_OK;
+	return Error::Success;
 }
 
 int MemFile::GetPos(void)
@@ -64,25 +63,24 @@ int MemFile::Seek(int pos, FileSeekOrigin origin)
 		m_pos += pos;
 	else
 		m_pos = m_size + pos;
-	return ERR_OK;
+	return Error::Success;
 }
 
 int MemFile::ReadData(void *dest, int size)
 {
-//  :TODO: Disabled because Michael's doesn't know the size of resources
-//	if (m_pos+size > m_size) CZERROR(ERR_IOERROR);
+	if (m_pos+size > m_size) CZERROR(Error::IOError);
 	memcpy(dest, &m_memPtr[m_pos], size);
 	m_pos += size;	
-	return ERR_OK;
+	return Error::Success;
 }
 
 int MemFile::WriteData(const void *src, int size)
 {
-	if (m_pos+size > m_size) CZERROR(ERR_IOERROR);
+	if (m_pos+size > m_size) CZERROR(Error::IOError);
 	memcpy(&m_memPtr[m_pos], src, size);
 	m_pos +=size;	
-	return ERR_OK;
+	return Error::Success;
 }
 
-} // namespace io
-} // namespace cz
+} // namespace cz::microaudio
+

@@ -8,17 +8,17 @@
 //
 
 #include <crazygaze/microaudio/win32/Win32WaveOutOutput.h>
+#include <crazygaze/microaudio/Core.h>
+#include <crazygaze/microaudio/Memory.h>
 #include <thread>
 #include <mutex>
 #include <windows.h>
 #include <Mmsystem.h>
 
-namespace cz
-{
-namespace microaudio
+namespace cz::microaudio
 {
 
-class Win32WaveOutOutputImpl : public ::cz::Object
+class Win32WaveOutOutputImpl
 {
 
 public:
@@ -131,15 +131,15 @@ int Win32WaveOutOutputImpl::writeBlock(void)
 	WAVEHDR* current;
 	MMRESULT err;
 
-	if (m_waveFreeBlockCount<=0) CZERROR(ERR_CANTRUN);
+	if (m_waveFreeBlockCount<=0) CZERROR(Error::CantRun);
 
 	current = &m_waveBlocks[m_waveCurrentBlock];
 
 	/*  first make sure the header we're going to use is unprepared	*/
 	if(current->dwFlags & WHDR_PREPARED)
 		if ((err=waveOutUnprepareHeader(m_hWaveOut, current, sizeof(WAVEHDR)))!=MMSYSERR_NOERROR){
-			CZLOG(LOG_ERROR, "Error calling waveOutUnprepareHeader : Error %d\n", (int)err);
-			CZERROR(ERR_BADAPICALL);
+			CZMICROAUDIO_LOG(LogLevel::Error, "Error calling waveOutUnprepareHeader : Error %d\n", (int)err);
+			CZERROR(Error::BadAPICall);
 		}
 
 	m_outer->UpdateStatus();
@@ -149,13 +149,13 @@ int Win32WaveOutOutputImpl::writeBlock(void)
 	current->dwFlags=0;
 
 	if ((err=waveOutPrepareHeader(m_hWaveOut, current, sizeof(WAVEHDR)))!=MMSYSERR_NOERROR){
-		CZLOG(LOG_ERROR, "Error calling waveOutPrepareHeader : Error %d\n", (int)err);
-		CZERROR(ERR_BADAPICALL);
+		CZMICROAUDIO_LOG(LogLevel::Error, "Error calling waveOutPrepareHeader : Error %d\n", (int)err);
+		CZERROR(Error::BadAPICall);
 	}
 
 	if ((err=waveOutWrite(m_hWaveOut, current, sizeof(WAVEHDR)))!=MMSYSERR_NOERROR){
-		CZLOG(LOG_ERROR, "Error calling waveOutWrite : Error %d\n", (int)err);
-		CZERROR(ERR_BADAPICALL);
+		CZMICROAUDIO_LOG(LogLevel::Error, "Error calling waveOutWrite : Error %d\n", (int)err);
+		CZERROR(Error::BadAPICall);
 	}
 
 	/* point to the next block */
@@ -167,11 +167,10 @@ int Win32WaveOutOutputImpl::writeBlock(void)
 		m_waveOutMutex.unlock();
 	}
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 Win32WaveOutOutputImpl::Win32WaveOutOutputImpl(Win32WaveOutOutput* outer)
-	: ::cz::Object(outer->m_core)
 {
 	PROFILE();
 	m_outer = outer;
@@ -195,7 +194,7 @@ Win32WaveOutOutputImpl::~Win32WaveOutOutputImpl()
 		m_workerThread.join();
 
 		if ((ret=waveOutReset(m_hWaveOut))!=MMSYSERR_NOERROR){
-			CZLOG(LOG_ERROR, "ERROR calling waveOutReset : Error %d\n", (int)ret);
+			CZMICROAUDIO_LOG(LogLevel::Error, "ERROR calling waveOutReset : Error %d\n", (int)ret);
 		}
 
 		/*unprepare any blocks that are still prepared */
@@ -203,16 +202,16 @@ Win32WaveOutOutputImpl::~Win32WaveOutOutputImpl()
 			for(int i = 0; i < CZWIN32WAVEOUT_BLOCK_COUNT; i++)
 				if(m_waveBlocks[i].dwFlags & WHDR_PREPARED)
 					if ((ret=waveOutUnprepareHeader(m_hWaveOut, &m_waveBlocks[i], sizeof(WAVEHDR)))!=MMSYSERR_NOERROR)
-						CZLOG(LOG_ERROR, "ERROR calling waveOutUnprepareHeader : Error %d\n", (int)ret);;
+						CZMICROAUDIO_LOG(LogLevel::Error, "ERROR calling waveOutUnprepareHeader : Error %d\n", (int)ret);;
 		}
 	
 		if ((ret=waveOutClose(m_hWaveOut))!=MMSYSERR_NOERROR){
-			CZLOG(LOG_ERROR, "ERROR calling waveOutClose : %d\n", (int)ret);
+			CZMICROAUDIO_LOG(LogLevel::Error, "ERROR calling waveOutClose : %d\n", (int)ret);
 		}
 	}
 
 	// delete as (unsigned char*), because it was allocated as such
-	if (m_waveBlocks!=NULL) CZFREE((unsigned char*)m_waveBlocks);
+	if (m_waveBlocks!=NULL) CZMICROAUDIO_FREE((unsigned char*)m_waveBlocks);
 
 }
 
@@ -241,7 +240,7 @@ int Win32WaveOutOutputImpl::Init(int maxActiveSounds, int mixSizeMs, bool stereo
 		DWORD totalBufferSize = (m_waveBlockSize + sizeof(WAVEHDR)) * CZWIN32WAVEOUT_BLOCK_COUNT;
 
 		/* allocate memory for all the blocks in one go */
-		if((buffer = (unsigned char*) CZALLOC(sizeof(unsigned char)*totalBufferSize))==NULL) CZERROR(ERR_NOMEM);
+		if((buffer = (unsigned char*) CZMICROAUDIO_ALLOC(sizeof(unsigned char)*totalBufferSize))==NULL) CZERROR(Error::OutOfMemory);
 		memset(buffer,0, totalBufferSize);
 
 		/* setup the headers */
@@ -267,23 +266,23 @@ int Win32WaveOutOutputImpl::Init(int maxActiveSounds, int mixSizeMs, bool stereo
 		Sleep(1);
 	}
 
-	CZLOG(LOG_INFO, "workerTread started...\n");
+	CZMICROAUDIO_LOG(LogLevel::Log, "workerTread started...\n");
 
 	/* Open the default wave device */
 	if((err=waveOutOpen( &m_hWaveOut, WAVE_MAPPER, &wfx, (DWORD_PTR)waveOutProc, (DWORD_PTR)this, CALLBACK_FUNCTION)) != MMSYSERR_NOERROR) {
-		CZLOG(LOG_ERROR, "Error calling waveOutOpen : Error %d\n", (int)err);
-		CZERROR(ERR_BADAPICALL);
+		CZMICROAUDIO_LOG(LogLevel::Error, "Error calling waveOutOpen : Error %d\n", (int)err);
+		CZERROR(Error::BadAPICall);
 	}
-	CZLOG(LOG_INFO, "waveOutOpen call successful.\n");
+	CZMICROAUDIO_LOG(LogLevel::Log, "waveOutOpen call successful.\n");
 	if ((err=waveOutPause(m_hWaveOut))!=MMSYSERR_NOERROR){
-		CZLOG(LOG_ERROR, "Error calling waveOutPause : Error %d\n", (int)err);
-		CZERROR(ERR_BADAPICALL);
+		CZMICROAUDIO_LOG(LogLevel::Error, "Error calling waveOutPause : Error %d\n", (int)err);
+		CZERROR(Error::BadAPICall);
 	}
 
 	m_numFramesInBlock = m_waveBlockSize / wfx.nBlockAlign;
 	// Init the mixer stuff in the parent class
 	int ret = m_outer->InitSoftwareMixerOutput(maxActiveSounds, m_numFramesInBlock, stereo, bits16, freq);
-	if (ret!=ERR_OK) CZERROR(ret);
+	if (ret!=Error::Success) CZERROR(static_cast<Error>(ret));
 
 	for(int i = 0; i < CZWIN32WAVEOUT_BLOCK_COUNT; i++)
 	{
@@ -292,20 +291,20 @@ int Win32WaveOutOutputImpl::Init(int maxActiveSounds, int mixSizeMs, bool stereo
 		current->dwUser = m_waveBlockSize;
 
 		if ((err=waveOutPrepareHeader(m_hWaveOut, current, sizeof(WAVEHDR)))!=MMSYSERR_NOERROR){
-			CZLOG(LOG_ERROR, "Error calling waveOutPrepareHeader : Error %d\n", (int)err);
-			CZERROR(ERR_BADAPICALL);
+			CZMICROAUDIO_LOG(LogLevel::Error, "Error calling waveOutPrepareHeader : Error %d\n", (int)err);
+			CZERROR(Error::BadAPICall);
 		}
 		if ((err=waveOutWrite(m_hWaveOut, current, sizeof(WAVEHDR)))!=MMSYSERR_NOERROR){
-			CZLOG(LOG_ERROR, "Error calling waveOutWrite : Error %d\n", (int)err);
-			CZERROR(ERR_BADAPICALL);
+			CZMICROAUDIO_LOG(LogLevel::Error, "Error calling waveOutWrite : Error %d\n", (int)err);
+			CZERROR(Error::BadAPICall);
 		}
 	}
-	CZLOG(LOG_INFO, "Initial block filling complete...\n");
+	CZMICROAUDIO_LOG(LogLevel::Log, "Initial block filling complete...\n");
 
 	waveOutRestart(m_hWaveOut);
 
 	Sleep(500);
-	return ERR_OK;
+	return Error::Success;
 }
 
 
@@ -324,15 +323,14 @@ void Win32WaveOutOutputImpl::ResumeOutput()
 //////////////////////////////////////////////////////////////////////////
 
 
-Win32WaveOutOutput::Win32WaveOutOutput(::cz::Core *parentObject)
-	: SoundOutput(parentObject)
+Win32WaveOutOutput::Win32WaveOutOutput()
 {
-	m_impl = CZNEW(Win32WaveOutOutputImpl)(this);
+	m_impl = CZMICROAUDIO_NEW(Win32WaveOutOutputImpl, this);
 }
 
 Win32WaveOutOutput::~Win32WaveOutOutput()
 {
-	CZDELETE(m_impl);
+	CZMICROAUDIO_DELETE(m_impl);
 }
 
 int Win32WaveOutOutput::Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits16, int freq )
@@ -361,6 +359,5 @@ void Win32WaveOutOutput::UnlockMixer()
 	m_impl->UnlockMixer();
 }
 
-} // namespace microaudio
-} // namespace cz
+} // namespace cz::microaudio
 

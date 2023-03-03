@@ -35,11 +35,8 @@
 	#include <crazygaze/microaudio/DiskFile.h>
 #endif
 
-namespace cz
+namespace cz::microaudio
 {
-namespace microaudio
-{
-
 
 int AudioPlayer::GetDefaultConfig(AudioPlayerConfig *cfg)
 {
@@ -65,7 +62,7 @@ int AudioPlayer::GetDefaultConfig(AudioPlayerConfig *cfg)
 	#error No platform specific configuration
 #endif
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 
@@ -74,7 +71,7 @@ int AudioPlayer::GetDefaultConfig(AudioPlayerConfig *cfg)
 /***************** czSoundOutput ******************/
 /**********************************************************/
 
-SoundOutput::SoundOutput(::cz::Core *parentObject) : ::cz::Object(parentObject), m_mixer(parentObject)
+SoundOutput::SoundOutput()
 {
 	PROFILE();
 
@@ -89,7 +86,7 @@ SoundOutput::~SoundOutput()
 
 	if (m_sounds!=NULL){
 		StopAll();
-		CZFREE(m_sounds);
+		CZMICROAUDIO_FREE(m_sounds);
 	}
 
 #if CZMICROAUDIO_OGG_ENABLED
@@ -103,17 +100,17 @@ int SoundOutput::Init(int maxActiveSounds, int mixSizeMs, bool stereo, bool bits
 {
 #if CZMICROAUDIO_OGG_ENABLED
 	/*
-	CZLOG(LOG_INFO, "Create IO thread...\n");
-	if (!m_iothread.Create(0, PRIORITY_NORMAL)!=ERR_OK)
+	CZMICROAUDIO_LOG(LogLevel::Log, "Create IO thread...\n");
+	if (!m_iothread.Create(0, PRIORITY_NORMAL)!=Error::Success)
 	{
-		CZERROR(ERR_BADAPICALL);
+		CZERROR(Error::BadAPICall);
 	}
 	m_iothread.Start();
-	CZLOG(LOG_INFO, "IO thread created\n");
+	CZMICROAUDIO_LOG(LogLevel::Log, "IO thread created\n");
 	*/
 #endif
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 int SoundOutput::InitSoftwareMixerOutput(int maxActiveSounds, int mixSize, bool stereo, bool bits16, int freq )
@@ -122,14 +119,14 @@ int SoundOutput::InitSoftwareMixerOutput(int maxActiveSounds, int mixSize, bool 
 
 	m_maxActiveSounds = maxActiveSounds;
 	m_sfxMasterVolume = AUDIO_MASTERVOL_DEFAULT;
-	m_sounds = (SOUND_ST*) CZALLOC(sizeof(SOUND_ST)*m_maxActiveSounds);
-	if (m_sounds==NULL) CZERROR(ERR_NOMEM);
+	m_sounds = (SOUND_ST*) CZMICROAUDIO_ALLOC(sizeof(SOUND_ST)*m_maxActiveSounds);
+	if (m_sounds==NULL) CZERROR(Error::OutOfMemory);
 	memset(m_sounds, 0, sizeof(SOUND_ST)*m_maxActiveSounds);
 
 	int ret = m_mixer.Init(maxActiveSounds, mixSize, stereo, bits16, freq);
-	if (ret!=ERR_OK) CZERROR(ret);
+	if (ret!=Error::Success) CZERROR(static_cast<Error>(ret));
 
-	return ERR_OK;	
+	return Error::Success;	
 }
 
 
@@ -139,7 +136,7 @@ void SoundOutput::UpdateStreamSound(SOUND_ST *st)
 	PROFILE();
 	if (!m_mixer.IsVoiceON(st->mixerChannel))
 	{
-		CZLOG(LOG_INFO, "Stream not playing... Removing slot and disposing handle %u.\n", st->handle);
+		CZMICROAUDIO_LOG(LogLevel::Log, "Stream not playing... Removing slot and disposing handle %u.\n", st->handle);
 		st->streamSound->FinishedPlaying();
 		st->streamSound = NULL;
 	}
@@ -149,7 +146,7 @@ void SoundOutput::UpdateModuleSound(SOUND_ST *st)
 {
 	PROFILE();
 	if (st->moduleSound->ReachedEnd()){
-		CZLOG(LOG_INFO, "Module not playing... Removing slot and disposing handle %u.\n", st->handle);
+		CZMICROAUDIO_LOG(LogLevel::Log, "Module not playing... Removing slot and disposing handle %u.\n", st->handle);
 		st->moduleSound = NULL;
 	}
 }
@@ -158,7 +155,7 @@ void SoundOutput::UpdateStaticSound(SOUND_ST *st)
 {
 	// If is not playing, then dispose slot
 	if (!m_mixer.IsVoiceON(st->mixerChannel)) {
-		CZLOG(LOG_INFO, "Sound not playing... Removing slot and disposing handle %u.\n", st->handle);
+		CZMICROAUDIO_LOG(LogLevel::Log, "Sound not playing... Removing slot and disposing handle %u.\n", st->handle);
 		st->staticSound = NULL;
 	}
 }
@@ -284,7 +281,7 @@ int SoundOutput::FeedData(void *ptr, int numFrames)
 	if (m_listener)
 		m_listener->OnBufferMixed(ptr, numFrames);
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 
@@ -303,28 +300,28 @@ int SoundOutput::FeedData(void *ptr, int numFrames)
 
 
 
-Module* SoundOutput::LoadModule(::cz::io::File *in)
+Module* SoundOutput::LoadModule(File *in)
 {
 	int err;
 	Module *mod=NULL;
 
 #if CZMICROAUDIO_MOD_ENABLED
 	if (MODModule::CheckFormat(in)){
-		if ((mod = CZNEW(MODModule)(m_core))==NULL) CZERROR_RETNULL(ERR_NOMEM);
+		if ((mod = CZMICROAUDIO_NEW(MODModule))==NULL) CZERROR_RETNULL(Error::OutOfMemory);
 	}
 #endif
 
 #if CZMICROAUDIO_IT_ENABLED
 	if (ITModule::CheckFormat(in)) {
-		if ((mod = CZNEW(ITModule)(m_core))==NULL) CZERROR_RETNULL(ERR_NOMEM);
+		if ((mod = CZMICROAUDIO_NEW(ITModule))==NULL) CZERROR_RETNULL(Error::OutOfMemory);
 	}
 #endif
 
-	if (mod==NULL) CZERROR_RETNULL(ERR_WRONGFORMAT);
+	if (mod==NULL) CZERROR_RETNULL(Error::WrongFormat);
 	err = mod->Init(in);
-	if (err!=ERR_OK){
-		CZDELETE(mod);
-		CZERROR_RETNULL(err);
+	if (err!=Error::Success){
+		CZMICROAUDIO_DELETE(mod);
+		CZERROR_RETNULL(static_cast<Error>(err));
 	}
 
 	return mod;
@@ -340,16 +337,16 @@ Module* SoundOutput::LoadModule(::cz::io::File *in)
 
 int SoundOutput::Update()
 {
-	return ERR_OK;
+	return Error::Success;
 }
 
 #if CZMICROAUDIO_DISKFILE_ENABLED
 
 HMODULEDATA SoundOutput::LoadModule(const char* filename)
 {
-	::cz::io::DiskFile in(m_core);
-	int err = in.Open(filename, 0, ::cz::io::FILE_READ);
-	if (err!=ERR_OK) CZERROR_RETNULL(err);
+	DiskFile in;
+	int err = in.Open(filename, 0, FILE_READ);
+	if (err!=Error::Success) CZERROR_RETNULL(static_cast<Error>(err));
 	Module *mod = LoadModule(&in);
 	in.Close();
 	return mod;
@@ -359,7 +356,7 @@ HMODULEDATA SoundOutput::LoadModule(const char* filename)
 
 HMODULEDATA SoundOutput::LoadModule(const void* data, int dataSize)
 {
-	::cz::io::MemFile in(m_core);
+	MemFile in;
 	in.Open((uint8_t*)data, dataSize);
 	Module *mod = LoadModule(&in);
 	in.Close();
@@ -385,22 +382,22 @@ struct formatchunk
 };
 #define WAVE_FORMAT_PCM 1
 
-StaticSound* SoundOutput::LoadWAV(::cz::io::File *in)
+StaticSound* SoundOutput::LoadWAV(File *in)
 {
-	int err=ERR_OK;
+	int err=Error::Success;
 	StaticSound *tmpsnd = NULL;
 
 	if (WAVLoader::CheckFormat(in))
 	{
-		WAVLoader loader(m_core);
-		if ((err = loader.Load(in, &tmpsnd))!=ERR_OK)
-			CZERROR_RETNULL(err);
+		WAVLoader loader;
+		if ((err = loader.Load(in, &tmpsnd))!=Error::Success)
+			CZERROR_RETNULL(static_cast<Error>(err));
 	}
 
 	if (tmpsnd==NULL)
 	{
-		CZLOG(LOG_ERROR, "Unrecognizable sound file format.\n");
-		CZERROR_RETNULL(ERR_WRONGFORMAT);
+		CZMICROAUDIO_LOG(LogLevel::Error, "Unrecognizable sound file format.\n");
+		CZERROR_RETNULL(Error::WrongFormat);
 	}
 
 	return tmpsnd;
@@ -409,16 +406,16 @@ StaticSound* SoundOutput::LoadWAV(::cz::io::File *in)
 #if CZMICROAUDIO_DISKFILE_ENABLED
 HSOUNDDATA SoundOutput::LoadWAV(const char* filename)
 {
-	::cz::io::DiskFile in(m_core);
+	DiskFile in;
 	int err;
-	if ((err=in.Open(filename, 0, ::cz::io::FILE_READ))!=ERR_OK) CZERROR_RETNULL(err);	
+	if ((err=in.Open(filename, 0, FILE_READ))!=Error::Success) CZERROR_RETNULL(static_cast<Error>(err));
 	return LoadWAV(&in);
 }
 #endif
 
 HSOUNDDATA SoundOutput::LoadWAV(const void *data, int dataSize)
 {
-	::cz::io::MemFile in(m_core);
+	MemFile in;
 	in.Open((uint8_t*)data,dataSize);	
 	return LoadWAV(&in);
 }
@@ -427,23 +424,23 @@ HSOUNDDATA SoundOutput::LoadWAV(const void *data, int dataSize)
 
 int SoundOutput::FreeModuleSound(HMODULEDATA handle)
 {
-	CZDELETE((Module*)handle);
-	return ERR_OK;
+	CZMICROAUDIO_DELETE((Module*)handle);
+	return Error::Success;
 }
 
 int SoundOutput::FreeStaticSound(HSOUNDDATA handle)
 {
-	CZDELETE((StaticSound*)handle);
-	return ERR_OK;
+	CZMICROAUDIO_DELETE((StaticSound*)handle);
+	return Error::Success;
 }
 
 #if CZMICROAUDIO_OGG_ENABLED
 
-StreamSound* SoundOutput::LoadStream(::cz::io::File* in)
+StreamSound* SoundOutput::LoadStream(File* in)
 {
-	StreamSound* stream = CZNEW(StreamSound)(m_core);
+	StreamSound* stream = CZMICROAUDIO_NEW(StreamSound);
 	int err = stream->Init(in, m_mixer.GetMaxOutputBufferSizeFrames()*2);
-	if (err!=ERR_OK)
+	if (err!=Error::Success)
 		CZERROR_RETNULL(err);
 
 	return stream;
@@ -451,8 +448,8 @@ StreamSound* SoundOutput::LoadStream(::cz::io::File* in)
 
 HMODULEDATA SoundOutput::LoadStream(const void* data, int dataSize)
 {
-	::cz::io::MemFile* in = CZNEW(::cz::io::MemFile)(m_core);
-	void* ownmemory = CZALLOC(dataSize);
+	MemFile* in = CZMICROAUDIO_NEW(MemFile);
+	void* ownmemory = CZMICROAUDIO_ALLOC(dataSize);
 	memcpy(ownmemory, data, dataSize);
 	in->Open(static_cast<uint8_t*>(ownmemory), dataSize, true);
 	StreamSound* stream = LoadStream(in);
@@ -460,28 +457,28 @@ HMODULEDATA SoundOutput::LoadStream(const void* data, int dataSize)
 }
 int SoundOutput::FreeStream(HSOUNDDATA handle)
 {
-	CZDELETE((StreamSound*)handle);
-	return ERR_OK;
+	CZMICROAUDIO_DELETE((StreamSound*)handle);
+	return Error::Success;
 }
 
 #if CZMICROAUDIO_DISKFILE_ENABLED
 HSTREAMDATA SoundOutput::LoadStream(const char* filename)
 {
 	// Load to memory
-	::cz::io::DiskFile in(m_core);
-	int err = in.Open(filename, 0, ::cz::io::FILE_READ);
-	if (err!=ERR_OK)
+	DiskFile in(m_core);
+	int err = in.Open(filename, 0, FILE_READ);
+	if (err!=Error::Success)
 		CZERROR_RETNULL(err);
 	int fileSize = in.GetSize();
-	void* ownmemory = CZALLOC(fileSize);
+	void* ownmemory = CZMICROAUDIO_ALLOC(fileSize);
 	err = in.ReadData(ownmemory, fileSize);
-	if (err!=ERR_OK)
+	if (err!=Error::Success)
 	{
-		CZFREE(ownmemory);
+		CZMICROAUDIO_FREE(ownmemory);
 		CZERROR_RETNULL(err);
 	}
 
-	::cz::io::MemFile* memfile = CZNEW(::cz::io::MemFile)(m_core);
+	MemFile* memfile = CZMICROAUDIO_NEW(MemFile);
 	memfile->Open(static_cast<uint8_t*>(ownmemory), fileSize, true);
 
 	StreamSound *stream = LoadStream(memfile);
@@ -571,13 +568,13 @@ HSOUND SoundOutput::Play(HSOUNDDATA sndDataHandle, int vol, int pan, LoopMode lo
 	if (pan==-1){
 		panToUse = snd->GetPanning();
 	} else {
-		if (!INRANGE(pan, AUDIO_PAN_LEFT, AUDIO_PAN_RIGHT)) CZERROR(ERR_INVPAR);
+		if (!INRANGE(pan, AUDIO_PAN_LEFT, AUDIO_PAN_RIGHT)) CZERROR(Error::InvalidParameter);
 		panToUse = pan;
 	}
 	if (vol==-1){
 		volToUse = snd->GetVolume();
 	} else {
-		if (!INRANGE(vol, 0, AUDIO_VOL_MAX)) CZERROR(ERR_INVPAR);
+		if (!INRANGE(vol, 0, AUDIO_VOL_MAX)) CZERROR(Error::InvalidParameter);
 		volToUse = vol;
 	}
 
@@ -615,14 +612,14 @@ HSOUND SoundOutput::Play(HSOUNDDATA sndDataHandle, int vol, int pan, LoopMode lo
 		st->handle = handle;			
 		st->soundType = STATICSOUND;
 		st->mixerChannel = ch;
-		CZLOG(LOG_INFO, "Playing sound with handle %u\n", handle);
+		CZMICROAUDIO_LOG(LogLevel::Log, "Playing sound with handle %u\n", handle);
 	}
 	
 	// REMOVE THIS
 	/*
 	{
 		czDiskFile out(parent);
-		if (out.Open("c:\\system\\apps\\symbian_example_1\\out.raw",0, CZFILE_WRITE)!=ERR_OK)
+		if (out.Open("c:\\system\\apps\\symbian_example_1\\out.raw",0, CZFILE_WRITE)!=Error::Success)
 			User::Panic(_L("czPlayer"),1);
 		char buf[1000];
 		int i=250;
@@ -658,7 +655,7 @@ HSOUND SoundOutput::PlayModule(HMODULEDATA modDataHandle, int masterVol, bool lo
 		mod->SetMasterVolume(CLAMP(masterVol, 0, AUDIO_MASTERVOL_MAX));
 	}
 	UnlockMixer();
-	if (err!=ERR_OK) return -1;
+	if (err!=Error::Success) return -1;
 
 	HSOUND handle = m_lastHandle+1;
 	m_lastHandle++;
@@ -670,7 +667,7 @@ HSOUND SoundOutput::PlayModule(HMODULEDATA modDataHandle, int masterVol, bool lo
 	st->soundType = MODULESOUND;
 	st->bpmMixTodo=0;
 
-	CZLOG(LOG_INFO, "Playing module with handle %u\n", handle);
+	CZMICROAUDIO_LOG(LogLevel::Log, "Playing module with handle %u\n", handle);
 	return handle;
 }
 
@@ -690,7 +687,7 @@ HSOUND SoundOutput::PlayStream(HSTREAMDATA sndDataHandle, int vol, bool loop)
 	if (vol==-1){
 		volToUse = streamSnd->GetVolume();
 	} else {
-		if (!INRANGE(vol, 0, AUDIO_VOL_MAX)) CZERROR(ERR_INVPAR);
+		if (!INRANGE(vol, 0, AUDIO_VOL_MAX)) CZERROR(Error::InvalidParameter);
 		volToUse = vol;
 	}
 
@@ -710,7 +707,7 @@ HSOUND SoundOutput::PlayStream(HSTREAMDATA sndDataHandle, int vol, bool loop)
 			st->handle = handle;			
 			st->soundType = STREAMSOUND;
 			st->mixerChannel = ch;
-			CZLOG(LOG_INFO, "Playing stream with handle %u\n", handle);
+			CZMICROAUDIO_LOG(LogLevel::Log, "Playing stream with handle %u\n", handle);
 		}
 	}
 	UnlockMixer();
@@ -724,7 +721,7 @@ int SoundOutput::Stop(HSOUND sndHandle)
 
 	// Find the slot with the sound
 	SOUND_ST *slot = GetSlot(sndHandle);
-	if (slot==NULL) CZERROR(ERR_INVPAR);
+	if (slot==NULL) CZERROR(Error::InvalidParameter);
 
 	if (slot->soundType==MODULESOUND){
 		slot->moduleSound->Stop();
@@ -739,7 +736,7 @@ int SoundOutput::Stop(HSOUND sndHandle)
 		slot->staticSound=NULL;	
 	}
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 int SoundOutput::StopAll(void)
@@ -767,7 +764,7 @@ int SoundOutput::StopAll(void)
 
 	UnlockMixer();
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 int SoundOutput::SetVolume(HSOUND sndHandle, uint8_t vol)
@@ -776,7 +773,7 @@ int SoundOutput::SetVolume(HSOUND sndHandle, uint8_t vol)
 
 	// Find the slot with the sound
 	SOUND_ST *slot = GetSlot(sndHandle);
-	if (slot==NULL) CZERROR(ERR_INVPAR);
+	if (slot==NULL) CZERROR(Error::InvalidParameter);
 
 	LockMixer();
 	if (slot->soundType==MODULESOUND){
@@ -786,7 +783,7 @@ int SoundOutput::SetVolume(HSOUND sndHandle, uint8_t vol)
 	}
 	UnlockMixer();
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 int SoundOutput::SetFrequency(HSOUND sndHandle, int freq)
@@ -795,17 +792,17 @@ int SoundOutput::SetFrequency(HSOUND sndHandle, int freq)
 
 	// Find the slot with the sound
 	SOUND_ST *slot = GetSlot(sndHandle);
-	if (slot==NULL) CZERROR(ERR_INVPAR);
+	if (slot==NULL) CZERROR(Error::InvalidParameter);
 
 	// You can't change the playing frequency of songs
-	if (slot->soundType==MODULESOUND) CZERROR(ERR_INVPAR);
+	if (slot->soundType==MODULESOUND) CZERROR(Error::InvalidParameter);
 
 	// Set volume
 	LockMixer();
 	m_mixer.SetFrequency(slot->mixerChannel, freq);
 	UnlockMixer();
 
-	return ERR_OK;	
+	return Error::Success;	
 }
 
 int SoundOutput::SetPanning(HSOUND sndHandle, uint8_t pan)
@@ -814,26 +811,26 @@ int SoundOutput::SetPanning(HSOUND sndHandle, uint8_t pan)
 
 	// Find the slot with the sound
 	SOUND_ST *slot = GetSlot(sndHandle);
-	if (slot==NULL) CZERROR(ERR_INVPAR);
+	if (slot==NULL) CZERROR(Error::InvalidParameter);
 
 	// You can't change the panning of songs
-	if (slot->soundType==MODULESOUND) CZERROR(ERR_INVPAR);
+	if (slot->soundType==MODULESOUND) CZERROR(Error::InvalidParameter);
 
 	// Set volume
 	LockMixer();
 	m_mixer.SetPanning(slot->mixerChannel, pan);
 	UnlockMixer();
 
-	return ERR_OK;
+	return Error::Success;
 }
 
 int SoundOutput::Pause(HSOUND sndHandle)
 {
 	// Find the slot with the sound
 	SOUND_ST *st = GetSlot(sndHandle);
-	if (st==NULL) CZERROR(ERR_INVPAR);
+	if (st==NULL) CZERROR(Error::InvalidParameter);
 
-	if (st->paused) return ERR_OK;
+	if (st->paused) return Error::Success;
 
 	if (st->soundType==MODULESOUND){
 		st->moduleSound->Pause();
@@ -843,16 +840,16 @@ int SoundOutput::Pause(HSOUND sndHandle)
 		UnlockMixer();
 	}
 	st->paused = true;
-	return ERR_OK;
+	return Error::Success;
 }
 
 int SoundOutput::Resume(HSOUND sndHandle)
 {
 	// Find the slot with the sound
 	SOUND_ST *st = GetSlot(sndHandle);
-	if (st==NULL) CZERROR(ERR_INVPAR);
+	if (st==NULL) CZERROR(Error::InvalidParameter);
 
-	if (!st->paused) return ERR_OK;
+	if (!st->paused) return Error::Success;
 
 	if (st->soundType==MODULESOUND){
 		st->moduleSound->Resume();
@@ -863,7 +860,7 @@ int SoundOutput::Resume(HSOUND sndHandle)
 	}
 
 	st->paused = false;
-	return ERR_OK;
+	return Error::Success;
 }
 
 AudioPlayerListener* SoundOutput::SetListener(AudioPlayerListener *listener)
@@ -875,9 +872,9 @@ AudioPlayerListener* SoundOutput::SetListener(AudioPlayerListener *listener)
 
 int SoundOutput::SetSFXMasterVolume(int vol)
 {
-	if (!INRANGE(vol, 0, AUDIO_MASTERVOL_MAX)) CZERROR(ERR_INVPAR);
+	if (!INRANGE(vol, 0, AUDIO_MASTERVOL_MAX)) CZERROR(Error::InvalidParameter);
 	m_sfxMasterVolume = vol;
-	return ERR_OK;
+	return Error::Success;
 }
 
 int SoundOutput::GetSFXMasterVolume(void)
@@ -898,14 +895,14 @@ void SoundOutput::Destroy()
 {
 	//
 	// TODO - Deleting like this is dangerous. If we don't cast to the right type (one that really implements czPlayerInterface), it will mess up the vtables
-	CZDELETE(this);
+	CZMICROAUDIO_DELETE(this);
 }
 
 
 //
 // This function needs to be at the bottom of the file, because we redefine COREOBJ inside
 //
-AudioPlayer* AudioPlayer::Create(Core *core, AudioPlayerConfig *cfg)
+AudioPlayer* AudioPlayer::Create(AudioPlayerConfig *cfg)
 {
 	AudioPlayerConfig cfgToUse;
 
@@ -941,45 +938,44 @@ AudioPlayer* AudioPlayer::Create(Core *core, AudioPlayerConfig *cfg)
 	SoundOutput* out = NULL;
 	if (cfgToUse.driverType==AUDIO_DRIVER_WINMM)
 	{
-		out = CZNEW(Win32WaveOutOutput)(core);
+		out = CZMICROAUDIO_NEW(Win32WaveOutOutput);
 	}
 	else
 	{
-		CZLOG(LOG_ERROR,"Invalid output driver specified");
-		CZERROR_RETNULL(ERR_INVPAR);
+		CZMICROAUDIO_LOG(LogLevel::Error,"Invalid output driver specified");
+		CZERROR_RETNULL(Error::InvalidParameter);
 	}
 #elif CZ_PLATFORM_ARDUINO
 	if (cfgToUse.driverType!=AUDIO_DRIVER_ARDUINO_I2S)
 	{
-		CZLOG(LOG_ERROR, "Invalid output driver specified");
-		CZERROR_RETNULL(ERR_INVPAR);
+		CZMICROAUDIO_LOG(LogLevel::Error, "Invalid output driver specified");
+		CZERROR_RETNULL(Error::InvalidParameter);
 	}
-	ArduinoI2SOutput* out = CZNEW(ArduinoI2SOutput)(core);
+	ArduinoI2SOutput* out = CZMICROAUDIO_NEW(ArduinoI2SOutput);
 #else
 	#error No platform specific code specified
 #endif
 
 	if (out==NULL)
-		CZERROR_RETNULL(ERR_NOMEM);
+		CZERROR_RETNULL(Error::OutOfMemory);
 
 	// #TODO: I should code a more robust configuration validation, because some platforms require certain frequencies, bits, etc
 
 	int err=out->Init(cfgToUse.maxChannels, cfgToUse.bufSizeMs, (cfgToUse.outputChannels==2) ? true : false, (cfgToUse.bits==16) ? true : false, cfgToUse.frequency);
-	if (err!=ERR_OK)
+	if (err!=Error::Success)
 	{
-		CZLOG(LOG_ERROR,"Error initializing audio device\n");
-		CZDELETE(out);
-		CZERROR_RETNULL(err);
+		CZMICROAUDIO_LOG(LogLevel::Error,"Error initializing audio device\n");
+		CZMICROAUDIO_DELETE(out);
+		CZERROR_RETNULL(static_cast<Error>(err));
 	}
 
 	out->SetInterpolationMode(cfgToUse.interpolationMode);
 
-	CZLOG(LOG_INFO, "Output device created\n");
+	CZMICROAUDIO_LOG(LogLevel::Log, "Output device created\n");
 
 	return out;
 
 }
 
-} // namespace microaudio
-} // namespace cz
+} // namespace cz::microaudio
 

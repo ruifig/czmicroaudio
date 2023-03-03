@@ -9,13 +9,10 @@
 
 #include <crazygaze/microaudio/Module.h>
 
-
-namespace cz
-{
-namespace microaudio
+namespace cz::microaudio
 {
 
-Module::Module(::cz::Core *parentObject) : ::cz::Object(parentObject)
+Module::Module()
 {
 	m_loop = false;
 	m_reachedEnd = false;
@@ -25,5 +22,5 @@ Module::~Module()
 {
 }
 
-} // namespace microaudio
-} // namespace cz
+} // namespace cz::microaudio
+

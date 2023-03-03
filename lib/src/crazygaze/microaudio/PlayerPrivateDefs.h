@@ -61,33 +61,16 @@ Since this is a macro, be careful with the data types you use with it.
 // Log macros
 //
 #if CZMICROAUDIO_LOG_ENABLED
-	#define CZLOG COREOBJ->OnLog
+	#define CZMICROAUDIO_LOG Core::get()->onLog
 #else
-	#define CZLOG (void)sizeof
+	#define CZMICROAUDIO_LOG (void)sizeof
 #endif
-
-
-//
-// Memory allocation macros
-//
-#if CZ_DEBUG
-	#define CZALLOC(size) COREOBJ->AllocMem(size,  __FILE__, __LINE__)
-	#define CZFREE(ptr) COREOBJ->FreeMem(ptr, __FILE__, __LINE__)
-	#define CZNEW(CZOBJECTTYPE) new(COREOBJ, __FILE__, __LINE__) CZOBJECTTYPE
-	#define CZDELETE(CZOBJECT) delete CZOBJECT
-#else
-	#define CZALLOC(size) COREOBJ->AllocMem(size)
-	#define CZFREE(ptr) COREOBJ->FreeMem(ptr)
-	#define CZNEW(CZOBJECTTYPE) new(COREOBJ) CZOBJECTTYPE
-	#define CZDELETE(CZOBJECT) delete CZOBJECT
-#endif // CZ_DEBUG
-
 
 //
 // Error callback macros
 //
 #if CZMICROAUDIO_ERRORCALLBACK_ENABLED
-	#define CZERRORCALLBACK(err) COREOBJ->OnError(err)
+	#define CZERRORCALLBACK(err) Core::get()->onError(err)
 #else
 	#define CZERRORCALLBACK(err) ((void)0)
 #endif
@@ -96,42 +79,24 @@ Since this is a macro, be careful with the data types you use with it.
 //
 // Error macros
 //
-#if defined(_MSC_VER) && (_MSC_VER < 1300)
-	// VC6 doesn't support __FUNCTION__ macro
-	#define CZERROR(err) \
-		{ \
-			CZERRORCALLBACK(err); \
-			CZLOG("ERROR %d at %s:%d (%s)\n",err, __FILE__, __LINE__, COREOBJ->GetErrorMsg(err)); \
-			return err; \
-		}
-			
-	#define CZERROR_RETNULL(err) \
-		{ \
-			CZERRORCALLBACK(err); \
-			CZLOG("ERROR %d at %s:%d (%s)\n",err, __FILE__, __LINE__, COREOBJ->GetErrorMsg(err)); \
-			return NULL; \
-		}
-			
-#else
-	#define CZERROR(err) \
-		{ \
-			CZERRORCALLBACK(err); \
-			CZLOG(LOG_ERROR, "ERROR %d at %s:%s:%d (%s)\n",err, __FILE__, __FUNCTION__, __LINE__, COREOBJ->GetErrorMsg(err)); \
-			return err; \
-		}
-	#define CZERROR_RETNULL(err) \
-		{ \
-			CZERRORCALLBACK(err); \
-			CZLOG(LOG_ERROR, "ERROR %d at %s:%s:%d (%s)\n",err, __FILE__, __FUNCTION__, __LINE__, COREOBJ->GetErrorMsg(err)); \
-			return NULL; \
-		}
-#endif
+#define CZERROR(err) \
+	{ \
+		CZERRORCALLBACK(err); \
+		CZMICROAUDIO_LOG(LogLevel::Error, "ERROR %d at %s:%s:%d (%s)\n",err, __FILE__, __FUNCTION__, __LINE__, GetErrorMsg(err)); \
+		return err; \
+	}
+#define CZERROR_RETNULL(err) \
+	{ \
+		CZERRORCALLBACK(err); \
+		CZMICROAUDIO_LOG(LogLevel::Error, "ERROR %d at %s:%s:%d (%s)\n",err, __FILE__, __FUNCTION__, __LINE__, GetErrorMsg(err)); \
+		return NULL; \
+	}
 
 //
 // Assert macros
 //
 #if CZ_DEBUG
-	#define CZASSERT(expr) { bool exp_res=(expr); if(!(exp_res)) CZLOG(LOG_ERROR, "ASSERT failed at %s:%d (%s)\n",__FILE__, __LINE__); assert(exp_res);  }
+	#define CZASSERT(expr) { bool exp_res=(expr); if(!(exp_res)) CZMICROAUDIO_LOG(LogLevel::Error, "ASSERT failed at %s:%d (%s)\n",__FILE__, __LINE__); assert(exp_res);  }
 	// Difference between this and assert is this always evaluates the expression
 	#define CZCHECK(expr) CZASSERT(expr)
 #else
@@ -139,23 +104,6 @@ Since this is a macro, be careful with the data types you use with it.
 	// Difference between this and assert is this always evaluates the expression
 	#define CZCHECK(expr) expr
 #endif
-
-//! This template allows for compile-time asserts
-/*! I took the idea from the book "Modern C++ Design"
-* Use the CTASSERT macro, but the expression used must be a compile-time constant
-*
-* Example:
-*    CTASSERT(sizeof(SomeClass)==16);
-*
-* If the size of the the class "SomeClass" is not 16, then the code won't compile,
-* and we know there is something wrong (This behavior IS the compile time assert).
-* The code fails to compile if the expression inside CTASSERT is false,
-* because the templated struct CTAssert is only defined for <true>
-*/
-template<bool> struct CTAssert;
-template<> struct CTAssert<true> { };
-#define CTASSERT(x) CTAssert<x>()
-
 
 //
 // Placement new/delete, with dummy enums, to differentiate from any other new/delete

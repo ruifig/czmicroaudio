@@ -7,17 +7,13 @@
 //  Class responsible for software mixing
 //
 
-#ifndef _CZMIXER_H_
-#define _CZMIXER_H_
+#pragma once
 
 #include <crazygaze/microaudio/PlayerPrivateDefs.h>
 #include <crazygaze/microaudio/Audio.h>
 #include <crazygaze/microaudio/MixerListener.h>
-#include <crazygaze/microaudio/Object.h>
 
-namespace cz
-{
-namespace microaudio
+namespace cz::microaudio
 {
 
 // forward declarations
@@ -100,12 +96,13 @@ typedef struct
 #endif
 
 
-class Mixer : public ::cz::Object
+class Mixer
 {
 	
 public:
-	Mixer(::cz::Core *parentObject);
+	Mixer();
 	virtual ~Mixer();
+
 	int Init(uint32_t numberofchannels, uint32_t mixsize, bool stereo, bool is16bits, uint16_t freq);
 	void Free(void);
 	int MixPortion(void *dest, uint32_t len);
@@ -226,10 +223,5 @@ private:
 	MXFUNC *Mix8MonoFunc;
 };
 
+} // namespace cz::microaudio
 
-} // namespace microaudio
-} // namespace cz
-
-
-
-#endif

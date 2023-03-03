@@ -10,10 +10,9 @@
 #include <crazygaze/microaudio/PlayerPrivateDefs.h>
 #include <crazygaze/microaudio/WAVLoader.h>
 #include <crazygaze/microaudio/Mixer.h>
+#include <crazygaze/microaudio/Memory.h>
 
-namespace cz
-{
-namespace microaudio
+namespace cz::microaudio
 {
 
 struct WAVFormatChunk
@@ -51,26 +50,31 @@ struct WAVDataChunk
 // Available Decoders for WAV files
 //
 //
-class WAVDecoder : public ::cz::Object
+class WAVDecoder
 {
 public:
-	WAVDecoder(Core *core) : Object(core), m_block(NULL), m_file(NULL), m_fmt(NULL)
+	WAVDecoder()
+		: m_block(NULL)
+		, m_file(NULL)
+		, m_fmt(NULL)
 	{
 		m_numSamplesPerBlock = 0;
 	}
+
 	virtual ~WAVDecoder()
 	{
 		if (m_block)
-			CZFREE(m_block);
+			CZMICROAUDIO_FREE(m_block);
 	}
-	void SetParameters(::cz::io::File *file, WAVFormatChunk *fmt)
+
+	void SetParameters(File *file, WAVFormatChunk *fmt)
 	{
 		m_file = file;
 		m_fmt = fmt;
 	}
 	virtual int ReadExtraFormatBytes(void)
 	{
-		return ERR_OK;
+		return Error::Success;
 	}
 	// - Decodes a block, using the "Out" method to output samples.
 	// - framesToDo - Total number of frames left to decode for the all sound
@@ -87,9 +91,9 @@ public:
 		CZASSERT(m_numSamplesPerBlock!=0); // ReadExtraFormatBytes must be called first
 		CZASSERT(m_fmt->nBlockAlign>0);
 
-		m_block = (uint8_t*) CZALLOC(m_fmt->nBlockAlign);
+		m_block = (uint8_t*) CZMICROAUDIO_ALLOC(m_fmt->nBlockAlign);
 		if (m_block==NULL)
-			CZERROR(ERR_NOMEM);
+			CZERROR(Error::OutOfMemory);
 
 		// Initialize m_soundDst, so the Out method works
 		m_soundDst = snd->GetPtr();
@@ -100,18 +104,18 @@ public:
 		while(numBlocks-- && m_framesDecoded<snd->GetNumFrames())
 		{
 			int err = m_file->ReadData(m_block, m_fmt->nBlockAlign);
-			if (err!=ERR_OK)
-				CZERROR(err);
+			if (err!=Error::Success)
+				CZERROR(static_cast<Error>(err));
 			DecodeBlock(m_block, MIN(snd->GetNumFrames()-m_framesDecoded, m_numSamplesPerBlock));
 		}
 
 		CZASSERT(m_framesDecoded<=snd->GetNumFrames());
-		return ERR_OK;
+		return Error::Success;
 	}
 
 protected:
 	uint8_t *m_block; // Block used to hold temporary data while decoding
-	::cz::io::File *m_file;
+	File *m_file;
 	WAVFormatChunk *m_fmt;
 
 	void Out(int16_t sample)
@@ -134,7 +138,7 @@ private:
 class PCMDecoder : public WAVDecoder
 {
 public:
-	PCMDecoder(::cz::Core *core) : WAVDecoder(core)
+	PCMDecoder()
 	{
 	}
 	
@@ -148,17 +152,17 @@ public:
 		CZASSERT(m_fmt->nChannels==1 || m_fmt->nChannels==2) ;
 
 		int err = m_file->ReadData(snd->GetPtr(), dataSize);
-		if (err!=ERR_OK)
-			CZERROR(err);
+		if (err!=Error::Success)
+			CZERROR(static_cast<Error>(err));
 
-		return ERR_OK;
+		return Error::Success;
 	}
 };
 
 class IMAADPCMDecoder : public WAVDecoder
 {
 public:
-	IMAADPCMDecoder(::cz::Core *core) : WAVDecoder(core)
+	IMAADPCMDecoder()
 	{
 	}
 	virtual ~IMAADPCMDecoder()
@@ -168,7 +172,7 @@ public:
 	virtual int ReadExtraFormatBytes()
 	{
 		m_numSamplesPerBlock = m_file->ReadUnsigned16();
-		return ERR_OK;
+		return Error::Success;
 
 	}
 
@@ -288,7 +292,7 @@ const int16_t IMAADPCMDecoder::m_stepTable[89] = {
 class MSADPCMDecoder : public WAVDecoder
 {
 public:
-	MSADPCMDecoder(Core *core)  : WAVDecoder(core)
+	MSADPCMDecoder()
 	{
 		m_numCoefs = 0;
 		m_coefs = NULL;
@@ -297,7 +301,7 @@ public:
 	virtual ~MSADPCMDecoder()
 	{
 		if (m_coefs)
-			CZFREE(m_coefs);
+			CZMICROAUDIO_FREE(m_coefs);
 	}
 
 	int ReadExtraFormatBytes()
@@ -307,13 +311,13 @@ public:
 		m_numCoefs = m_file->ReadUnsigned16();
 		CZASSERT(m_numCoefs>0);
 		const int coefsSizeBytes = sizeof(COEFS)*m_numCoefs;
-		m_coefs = (COEFS*) CZALLOC(coefsSizeBytes);
+		m_coefs = (COEFS*) CZMICROAUDIO_ALLOC(coefsSizeBytes);
 		if (m_coefs==NULL)
-			CZERROR(ERR_NOMEM);
-		if ((err = m_file->ReadData(m_coefs, coefsSizeBytes))!=ERR_OK)
-			CZERROR(err);
+			CZERROR(Error::OutOfMemory);
+		if ((err = m_file->ReadData(m_coefs, coefsSizeBytes))!=Error::Success)
+			CZERROR(static_cast<Error>(err));
 
-		return ERR_OK;
+		return Error::Success;
 	}
 
 
@@ -422,7 +426,7 @@ const int32_t MSADPCMDecoder::adaptationTable[16] =
 
 
 
-WAVLoader::WAVLoader(Core *core) : m_core(core)
+WAVLoader::WAVLoader()
 {
 	m_tmpSnd = NULL;
 	m_decoder = NULL;
@@ -437,18 +441,18 @@ void WAVLoader::CleanupMemory()
 {
 	if (m_tmpSnd)
 	{
-		CZDELETE(m_tmpSnd);
+		CZMICROAUDIO_DELETE(m_tmpSnd);
 		m_tmpSnd=NULL;
 	}
 	if (m_decoder)
 	{
-		CZDELETE(m_decoder);
+		CZMICROAUDIO_DELETE(m_decoder);
 		m_decoder = NULL;
 	}
 }
 
 
-int WAVLoader::Load(::cz::io::File *in, StaticSound **basesnd)
+int WAVLoader::Load(File *in, StaticSound **basesnd)
 {
 	WAVFormatChunk fmt;
 	WAVFactChunk fact;
@@ -459,12 +463,12 @@ int WAVLoader::Load(::cz::io::File *in, StaticSound **basesnd)
 
 	if (!CheckFormat(in))
 	{
-		CZLOG(LOG_ERROR,"Not a WAVE file.\n");
-		CZERROR(ERR_WRONGFORMAT);
+		CZMICROAUDIO_LOG(LogLevel::Error,"Not a WAVE file.\n");
+		CZERROR(Error::WrongFormat);
 	}
 
 	// Skip the the amount of bytes we already checked at CheckFormat
-	in->Seek(4*4, ::cz::io::FILE_SEEK_START);
+	in->Seek(4*4, FILE_SEEK_START);
 
 	// Read Format Chunk
 	memset(&fmt, 0, sizeof(fmt));
@@ -479,24 +483,24 @@ int WAVLoader::Load(::cz::io::File *in, StaticSound **basesnd)
 	// Right now, I'm only supporting mono sounds
 	if (!(fmt.nChannels==1 || fmt.nChannels==2))
 	{
-		CZLOG(LOG_ERROR, "Only mono or stereo WAVE files are supported.\n");
-		CZERROR(ERR_WRONGFORMAT);
+		CZMICROAUDIO_LOG(LogLevel::Error, "Only mono or stereo WAVE files are supported.\n");
+		CZERROR(Error::WrongFormat);
 	}
 
 	if (fmt.wFormatTag==WAVE_FORMAT_PCM)
-		m_decoder = CZNEW(PCMDecoder)(m_core);
+		m_decoder = CZMICROAUDIO_NEW(PCMDecoder);
 	else if (fmt.wFormatTag==WAVE_FORMAT_MS_ADPCM)
-		m_decoder = CZNEW(MSADPCMDecoder)(m_core);
+		m_decoder = CZMICROAUDIO_NEW(MSADPCMDecoder);
 	else if (fmt.wFormatTag==WAVE_FORMAT_IMA_ADPCM)
-		m_decoder = CZNEW(IMAADPCMDecoder)(m_core);
+		m_decoder = CZMICROAUDIO_NEW(IMAADPCMDecoder);
 	else 
 	{
-		CZLOG(LOG_ERROR, "Unsupported WAVE encoding.\n");
-		CZERROR(ERR_WRONGFORMAT);
+		CZMICROAUDIO_LOG(LogLevel::Error, "Unsupported WAVE encoding.\n");
+		CZERROR(Error::WrongFormat);
 	}
 
 	if (m_decoder==NULL)
-		CZERROR(ERR_NOMEM);
+		CZERROR(Error::OutOfMemory);
 
 	m_decoder->SetParameters(in, &fmt);
 
@@ -517,8 +521,8 @@ int WAVLoader::Load(::cz::io::File *in, StaticSound **basesnd)
 		fact.numsamples = in->ReadSigned32();
 		if (memcmp(fact.id,"fact",4)!=0)
 		{
-			CZLOG(LOG_ERROR, "Failed to find expected 'Fact Chunk' in WAVE file.\n");
-			CZERROR(ERR_WRONGFORMAT);
+			CZMICROAUDIO_LOG(LogLevel::Error, "Failed to find expected 'Fact Chunk' in WAVE file.\n");
+			CZERROR(Error::WrongFormat);
 		}
 	}
 
@@ -529,8 +533,8 @@ int WAVLoader::Load(::cz::io::File *in, StaticSound **basesnd)
 	CZASSERT((data.dataSize % fmt.nBlockAlign) == 0);
 	if (memcmp(data.id, "data",4)!=0)
 	{
-		CZLOG(LOG_ERROR, "Failed to find expected 'Data Chunk' in WAVE file.\n");
-		CZERROR(ERR_WRONGFORMAT);
+		CZMICROAUDIO_LOG(LogLevel::Error, "Failed to find expected 'Data Chunk' in WAVE file.\n");
+		CZERROR(Error::WrongFormat);
 	}
 
 
@@ -539,8 +543,8 @@ int WAVLoader::Load(::cz::io::File *in, StaticSound **basesnd)
 
 	if ( numFrames > Mixer::AUDIO_MIXER_MAXSAMPLE_SIZE)
 	{
-		CZLOG(LOG_ERROR, "WAV sound data file exceeds supported sound size\n");
-		CZERROR(ERR_NOTAVAILABLE);
+		CZMICROAUDIO_LOG(LogLevel::Error, "WAV sound data file exceeds supported sound size\n");
+		CZERROR(Error::NotAvailable);
 	}
 
 	// Create the sound object
@@ -549,16 +553,16 @@ int WAVLoader::Load(::cz::io::File *in, StaticSound **basesnd)
 		format|=(fmt.bitsPerSample==16 || fmt.bitsPerSample==4) ? (SOUND_16BITS|SOUND_SIGNED) : (SOUND_8BITS|SOUND_UNSIGNED);
 		format|=(fmt.nChannels==2) ? SOUND_STEREO: SOUND_MONO;
 
-		m_tmpSnd = CZNEW(StaticSound)(m_core);
+		m_tmpSnd = CZMICROAUDIO_NEW(StaticSound);
 		if (m_tmpSnd==NULL)
-			CZERROR(ERR_NOMEM);
+			CZERROR(Error::OutOfMemory);
 		err = m_tmpSnd->Set(format, numFrames);
 
-		if (err!=ERR_OK)
+		if (err!=Error::Success)
 		{
-			CZDELETE(m_tmpSnd);
+			CZMICROAUDIO_DELETE(m_tmpSnd);
 			m_tmpSnd=0;
-			CZERROR(err);
+			CZERROR(static_cast<Error>(err));
 		}
 
 	}
@@ -575,10 +579,10 @@ int WAVLoader::Load(::cz::io::File *in, StaticSound **basesnd)
 	*basesnd = m_tmpSnd;
 	m_tmpSnd = NULL; // set to NULL so it won't be deleted in CleanUpMemory
 
-	return ERR_OK;
+	return Error::Success;
 }
 
-bool WAVLoader::CheckFormat(::cz::io::File *in)
+bool WAVLoader::CheckFormat(File *in)
 {
 	// Variable to hold some of the first bytes in the file, enough to quickly test if it's a WAV file
 	// 4 bytes - ChunkID ("RIFF")
@@ -588,11 +592,11 @@ bool WAVLoader::CheckFormat(::cz::io::File *in)
 	const int dsize = 4+4+4+4;
 	uint8_t header[dsize];
 
-	in->Seek(0, ::cz::io::FILE_SEEK_START);
+	in->Seek(0, FILE_SEEK_START);
 
 	memset(header, 0, sizeof(header));
 
-	if (in->ReadData(header, dsize)!=ERR_OK)
+	if (in->ReadData(header, dsize)!=Error::Success)
 		return false;
 
 	if (memcmp(header, "RIFF", 4)==0 && memcmp(&header[8], "WAVEfmt ",8)==0)
@@ -601,6 +605,5 @@ bool WAVLoader::CheckFormat(::cz::io::File *in)
 		return false;
 }
 
+} // namespace cz::microaudio
 
-} // namespace microaudio
-} // namespace cz

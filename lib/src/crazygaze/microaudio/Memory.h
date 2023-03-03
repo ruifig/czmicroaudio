@@ -16,18 +16,25 @@ namespace cz::microaudio
 namespace detail
 {
 	template<typename T>
+	void doDelete(T* ptr)
+	{
+		(*ptr).~T();
+#if CZMICROAUDIO_MEMTRACKER_ENABLED
+		cz::microaudio::MemoryTracker::free(ptr);
+#else
+		::free(b);
+#endif
+	}
+
+	template<typename T>
 	struct UniquePtrDeleter
 	{
 		void operator()(T* ptr)
 		{
-			(*ptr).~T();
-#if CZMICROAUDIO_MEMTRACKER_ENABLED
-			cz::microaudio::MemoryTracker::free(ptr);
-#else
-			::free(b);
-#endif
+			doDelete(ptr);
 		}
 	};
+
 }
 
 
@@ -68,4 +75,21 @@ UniquePtr<T> makeUniqueHelper(Args&&... args)
 #endif
 
 }
+
+#if CZMICROAUDIO_MEMTRACKER_ENABLED
+	#define CZMICROAUDIO_ALLOC(size) MemoryTracker::alloc(size, __FILE__, __LINE__)
+	#define CZMICROAUDIO_FREE(ptr) MemoryTracker::free(ptr)
+
+	// #TODO : Revise everythere this is used, to check if I should use UniquePtr<T>
+	#define CZMICROAUDIO_NEW(CZOBJECTTYPE, ...) makeUnique(CZOBJECTTYPE, __VA_ARGS__).release()
+	#define CZMICROAUDIO_DELETE(OBJ) ::cz::microaudio::detail::doDelete(OBJ)
+
+#else
+	#define CZMICROAUDIO_ALLOC(size) malloc(size)
+	#define CZMICROAUDIO_FREE(ptr) free(ptr)
+
+	// #TODO : Revise everythere this is used, to check if I should use UniquePtr<T>
+	#define CZMICROAUDIO_NEW(CZOBJECTTYPE) makeUnique(CZOBJECTTYPE).release()
+	#define CZMICROAUDIO_DELETE(OBJ) ::cz::microaudio::detail::doDelete(OBJ)
+#endif
 

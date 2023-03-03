@@ -6,42 +6,32 @@
 // --------------------------------------------------------------
 //
 
-#ifndef _CZ_WAVLOADER_H
-#define _CZ_WAVLOADER_H
+#pragma once
 
 #include <crazygaze/microaudio/PlayerPrivateDefs.h>
 #include <crazygaze/microaudio/Core.h>
 #include <crazygaze/microaudio/StaticSound.h>
 #include <crazygaze/microaudio/File.h>
 
-namespace cz
+namespace cz::microaudio
 {
-namespace microaudio
-{
-
-
-
 class WAVDecoder;
 
 class WAVLoader
 {
 public:
-	WAVLoader(Core *core);
+	WAVLoader();
 	~WAVLoader();
 
-	int Load(::cz::io::File *in, StaticSound **basesnd);
+	int Load(File *in, StaticSound **basesnd);
 
-	static bool CheckFormat(::cz::io::File *in);
+	static bool CheckFormat(File *in);
 private:
-	Core *m_core;
 	StaticSound *m_tmpSnd;
 	WAVDecoder *m_decoder;
 
 	void CleanupMemory();
 };
 
+} // end namespace cz::microaudio
 
-} // end namespace microaudio
-} // end namespace cz
-
-#endif

@@ -7,20 +7,12 @@
 // 
 //
 
-#ifndef _CZSTATICSOUND_H
-#define _CZSTATICSOUND_H
+#pragma once
 
-
-/** \file */
-
-#include <crazygaze/microaudio/Object.h>
 #include <crazygaze/microaudio/Audio.h>
 
-namespace cz
+namespace cz::microaudio
 {
-namespace microaudio
-{
-
 
 // Number of extra frames in start and end to allocate for sounds
 enum
@@ -68,10 +60,11 @@ Example for a 8 bits STEREO sound.
 /*!
  * Use \link czPlayer::LoadWAV \endlink to load WAV files
  */
-class StaticSound : public ::cz::Object {
+class StaticSound
+{
 
 public:
-	StaticSound(::cz::Core *parentObject);
+	StaticSound();
 	virtual ~StaticSound();
 
 	//! Initializes the internal sound buffer
@@ -81,7 +74,7 @@ public:
 	* \param form Format
 	* \param frames Size of the sound in frames
 	*
-	* \return ERR_OK on success, other on error.
+	* \return Error::Success on success, other on error.
 	*
 	*/
 	int Set(int form, int frames);
@@ -89,7 +82,7 @@ public:
 
 	//! Changes the sign of the sound data
 	/*!
-	* \return ERR_OK on success, other on error.
+	* \return Error::Success on success, other on error.
 	*/
 	int ChangeSign(void);
 
@@ -178,7 +171,7 @@ public:
 	 * \param freq Frequency in hertz. -1 to ignore
 	 * \param vol Volume. From 0 to AUDIO_VOL_MAX . -1 to ignore
 	 * \param pan Panning. From CZPAN_lEFT to AUDIO_PAN_RIGHT, or AUDIO_PAN_MIDDLE. -1 to ignore
-	 * \return ERR_OK on success, other on error
+	 * \return Error::Success on success, other on error
 	 */
 	int SetDefaults(int freq=-1, int vol=-1, int pan=-1);
 
@@ -227,8 +220,5 @@ private:
 
 };
 
-} // namespace microaudio
-} // namespace cz
+} // namespace cz::microaudio
 
-
-#endif

@@ -7,17 +7,12 @@
 // Base class for IO
 //
 
+#pragma once
 
-#ifndef _CZFILE_H_
-#define _CZFILE_H_
+#include <crazygaze/microaudio/Core.h>
 
-#include <crazygaze/microaudio/Object.h>
-
-namespace cz
+namespace cz::microaudio
 {
-namespace io
-{
-
 
 enum FileOpenMode
 {
@@ -46,13 +41,13 @@ enum FileSeekOrigin
  * 
  * Usage is oriented for binary data.
  */
-class File : public ::cz::Object
+class File
 {
 	
 public:
 
 	//! Default constructor
-	File(::cz::Core *core);
+	File();
 	
 	//! Destructor
 	virtual ~File();
@@ -68,7 +63,7 @@ public:
 	
 	//! Close the file
 	/*!
-	* \return ERR_OK on success, other on error
+	* \return Error::Success on success, other on error
 	*/
 	virtual int Close(void) = 0;
 
@@ -81,8 +76,8 @@ public:
 
 	//! Change the position for the next read/write operation
 	/*!
-	 * Similiar to C fseek function
-	 * \return ERR_OK on sucess, other on error
+	 * Similar to C fseek function
+	 * \return Error::Success on success, other on error
 	 */
 	virtual int Seek(int pos , FileSeekOrigin origin) = 0;
 	
@@ -93,7 +88,7 @@ public:
 	/*!
 	 * \param dest Destination buffer
 	 * \param size Number of bytes to read
-	 * \return ERR_OK on success, other on error
+	 * \return Error::Success on success, other on error
 	 */	
 	virtual int ReadData(void *dest, int size)  = 0;	
 
@@ -101,7 +96,7 @@ public:
 	/*!
 	 * \param src data to write.
 	 * \param size number of bytes to write
-	 * \return ERR_OK on success, other on ERROR
+	 * \return Error::Success on success, other on ERROR
 	 */
 	virtual int WriteData(const void *src, int size)  = 0;
 
@@ -109,11 +104,11 @@ public:
 	/*!
 	 * This is more like an utility function, with limited use.
 	 * 
-	 * Basically, it writes all the string to the file, followed by the newline 
-	 * characters.
+	 * Basically, it writes all the entire string to the file followed by the newline 
+	 * character(s).
 	 * 
 	 * \param str String to write
-	 * \return ERR_OK on success, other on error
+	 * \return Error::Success on success, other on error
 	 */
 	int WriteString(const char *str);
 	//void Log(const char *fmt, ...);
@@ -206,11 +201,7 @@ protected:
 				  ((((uint32_t) n) >> 24) & 0x000000FF) );
 	}
 	
-	
 };
 
+} // namespace cz::microaudio
 
-} // namespace io
-} // namespace cz
-
-#endif
