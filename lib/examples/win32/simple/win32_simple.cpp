@@ -9,8 +9,10 @@ To make thing even more clean, it doesn't even checks for errors.
 
 ===============================================================================================*/
 
-#include <crazygaze/microaudio/All.h>
-#include <crazygaze/microaudio/MemoryTracker.h>
+#include <crazygaze/microaudio/Output.h>
+#include <crazygaze/microaudio/AudioSource.h>
+#include <crazygaze/microaudio/Core.h>
+#include "../../../../media/birds_48000.h"
 
 #include <Arduino.h>
 #include <Windows.h>
@@ -25,7 +27,7 @@ struct MyCore : public Core
 	// These are for the Logger interface
 	virtual void onError(Error errorCode) override
 	{
-		Serial.print("ERROR: "); Serial.print(errorCode); Serial.print(":"); Serial.println(GetErrorMsg(errorCode));
+		Serial.print("ERROR: "); Serial.print(static_cast<int>(errorCode)); Serial.print(":"); Serial.println(getErrorMsg(errorCode));
 	}
 
 	virtual void onLogSimple(LogLevel level, const char *str) override
@@ -47,6 +49,9 @@ struct MyCore : public Core
 };
 
 MyCore gCore;
+
+
+#if 0
 
 void setup()
 {
@@ -108,3 +113,69 @@ void loop()
 	player->Destroy();
 }
 
+#else
+
+
+class SimpleAudioSource : public AudioSource
+{
+public:
+	SimpleAudioSource(const int16_t* data, uint32_t numFrames)
+		: m_data(data)
+		, m_numFrames(numFrames)
+	{
+		m_end = data + numFrames*2;
+		m_pos = m_data;
+	}
+
+	uint32_t get(void* ptr, uint32_t numFrames) override
+	{
+		int16_t* p = reinterpret_cast<int16_t*>(ptr);
+		uint32_t todo = numFrames;
+		while(todo--)
+		{
+			// left
+			*p = *m_pos;
+			p++;
+			m_pos++;
+
+			// right
+			*p = *m_pos;
+			p++;
+			m_pos++;
+
+			if (m_pos >= m_end)
+				m_pos = m_data;
+		}
+
+		return numFrames;
+	}
+
+private:
+
+	const int16_t* m_data;
+	const int16_t* m_end;
+	const int16_t* m_pos;
+	uint32_t m_numFrames;
+};
+
+constexpr size_t birds_48000_raw_numFrames = sizeof(birds_48000_raw) / sizeof(birds_48000_raw[0]) / 2;
+
+SimpleAudioSource src(reinterpret_cast<const int16_t*>(birds_48000_raw), birds_48000_raw_numFrames);
+DefaultOutput output;
+
+void setup()
+{
+#if 0
+	while(!kbhit())
+	{
+	}
+#endif
+
+	output.begin(src, nullptr);
+}
+
+void loop()
+{
+}
+
+#endif

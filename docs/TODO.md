@@ -23,3 +23,8 @@
     * Some of it is is from the late 90s, so style might look weird.
 * Some leftover comments from old code might be completely wrong since they don't apply to this port
 
+
+
+# Misc resources
+
+* http://yehar.com/blog/?p=197

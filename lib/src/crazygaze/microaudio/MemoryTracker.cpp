@@ -1,4 +1,5 @@
 #include <crazygaze/microaudio/MemoryTracker.h>
+#include <crazygaze/microaudio/PlayerPrivateDefs.h>
 #include <Arduino.h>
 
 namespace cz::microaudio
@@ -17,17 +18,18 @@ void* MemoryTracker::alloc(size_t size, const char* file, uint32_t line)
 	AllocInfo* info = reinterpret_cast<AllocInfo*>(malloc(sizeof(AllocInfo) + size));
 	if (!info)
 	{
-		exit(EXIT_FAILURE);
+		CZMICROAUDIO_ASSERT(false);
+		return nullptr;
 	}
 
 	memset(info, 0, sizeof(AllocInfo));
 	void* ptr = info+1;
 
-#if CZ_MEMORYTRACKER_CHECK_FREE
+#if CZMICROAUDIO_MEMTRACKER_CHECK_FREE
 	info->ptr = ptr;
 #endif
 
-#if CZ_MEMORYTRACKER_TRACK_LOCATION
+#if CZMICROAUDIO_MEMTRACKER_TRACK_LOCATION
 	info->file = file ? getFilename(file) : "";
 	info->line = line;
 #endif
@@ -51,8 +53,8 @@ void MemoryTracker::free(void* ptr)
 	}
 
 	AllocInfo* info = reinterpret_cast<AllocInfo*>(reinterpret_cast<uint8_t*>(ptr) - sizeof(AllocInfo));
-#if CZ_MEMORYTRACKER_CHECK_FREE
-	assert(info->ptr == ptr);
+#if CZMICROAUDIO_MEMTRACKER_CHECK_FREE
+	CZMICROAUDIO_ASSERT(info->ptr == ptr);
 	if (info->ptr != ptr)
 	{
 		return;
@@ -82,7 +84,7 @@ void MemoryTracker::log()
 	size_t totalAllocs = 0;
 	size_t totalRequestedBytes = 0;
 
-	printMultipleln("Ptr,File,Line,Size");
+	printMultipleln(F("Size,File,Line"));
 
 	const AllocInfo* info = ms_list.front();
 	while(info)
@@ -93,24 +95,24 @@ void MemoryTracker::log()
 		void* ptr = (void*)0;
 		const char* file = "";
 		uint32_t line = 0;
-#if CZ_MEMORYTRACKER_CHECK_FREE
+#if CZMICROAUDIO_MEMTRACKER_CHECK_FREE
 		ptr = info->ptr;
 #endif
-#if CZ_MEMORYTRACKER_TRACK_LOCATION
+#if CZMICROAUDIO_MEMTRACKER_TRACK_LOCATION
 		file = info->file;
 		line = info->line;
 #endif
-		printMultipleln(ptr, ",", file, ",", line, ",", info->size);
+		printMultipleln(info->size, ",", file, ",", line);
 		info = info->nextLinkedItem();
 	}
 
-	assert(totalAllocs == (ms_numAllocs - ms_numFrees));
+	CZMICROAUDIO_ASSERT(totalAllocs == (ms_numAllocs - ms_numFrees));
 	printMultiple();
 
 	size_t overheadBytes = totalAllocs * sizeof(AllocInfo);
-	printMultipleln("Total allocs=", totalAllocs);
-	printMultipleln("Total requested bytes=", totalRequestedBytes);
-	printMultipleln("Total overhead=", overheadBytes);
+	printMultipleln(F("Total allocs="), totalAllocs);
+	printMultipleln(F("Total requested bytes="), totalRequestedBytes);
+	printMultipleln(F("Total overhead="), overheadBytes);
 }
 
 void MemoryTracker::calcAllocated(size_t* outAppAllocated, size_t* outOverhead)
@@ -127,7 +129,7 @@ void MemoryTracker::calcAllocated(size_t* outAppAllocated, size_t* outOverhead)
 		info = info->nextLinkedItem();
 	}
 
-	assert(totalAllocs == (ms_numAllocs - ms_numFrees));
+	CZMICROAUDIO_ASSERT(totalAllocs == (ms_numAllocs - ms_numFrees));
 
 	if (outAppAllocated)
 		*outAppAllocated = appAllocated;

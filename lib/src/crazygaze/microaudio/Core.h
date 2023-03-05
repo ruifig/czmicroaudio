@@ -1,21 +1,11 @@
-//
-// CrazyGaze (http://www.crazygaze.com)
-// Author : Rui Figueira
-// Email  : rui@crazygaze.com
-//
-// --------------------------------------------------------------
-//
-
 #pragma once
 
-#include <crazygaze/microaudio/Player.h>
+#include <crazygaze/microaudio/Defs.h>
 
 namespace cz::microaudio
 {
-	
 	//! Returns the description of an error.
-	const char* GetErrorMsg(Error error);
-
+	const char* getErrorMsg(Error error);
 
 	/*!
 	 * \brief Provides core functionality needed across the library
@@ -36,7 +26,10 @@ namespace cz::microaudio
 		 */
 		static Core* get();
 
+#if CZMICROAUDIO_ERRORCALLBACK_ENABLED
 		virtual void onError(Error error);
+#endif
+
 #if CZMICROAUDIO_LOG_ENABLED
 		virtual void onLog(LogLevel level, const char *fmt, ...);
 		virtual void onLogSimple(LogLevel, const char *str);

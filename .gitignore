@@ -7,5 +7,7 @@
 build
 temp
 bin
-
 docs/*.vpp.bak_*
+
+compile_commands.json
+

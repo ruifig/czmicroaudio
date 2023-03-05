@@ -25,7 +25,17 @@ public:
 		std::cout << val << std::endl;
 	}
 
+	operator bool() const
+	{
+		return true;
+	}
+
 };
 
 extern HardwareSerial Serial;
 extern HardwareSerial Serial1;
+
+using __FlashStringHelper = char;
+#define F(string_literal) string_literal
+#define PROGMEM
+

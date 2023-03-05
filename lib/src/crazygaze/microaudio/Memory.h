@@ -3,8 +3,10 @@
 #include <crazygaze/microaudio/Config.h>
 #include <crazygaze/microaudio/MemoryTracker.h>
 
-#if CZ_PLATFORM_WIN32
+#if __has_include (<memory>)
 	#include <memory>
+#else
+	#error "Need STL's <memory>"
 #endif
 
 namespace cz::microaudio
@@ -65,30 +67,31 @@ UniquePtr<T> makeUniqueHelper(Args&&... args)
 	return UniquePtr<T>(new(ptr) T(std::forward<Args>(args)...));
 }
 #endif
-}
+} // detail
 
+
+} // cz::microaudio
 
 #if CZMICROAUDIO_MEMTRACKER_ENABLED
-	#define makeUnique(Type, ...) ::cz::microaudio::detail::makeUniqueHelper<Type>(__FILE__, __LINE__, __VA_ARGS__)
+	#define makeUnique(Type, ...) ::cz::microaudio::detail::makeUniqueHelper<Type>(__FILE__, __LINE__, ##__VA_ARGS__)
 #else
-	#define makeUnique(Type, ...) ::cz::microaudio::detail::makeUniqueHelper<Type>(__VA_ARGS__)
+	#define makeUnique(Type, ...) ::cz::microaudio::detail::makeUniqueHelper<Type>(##__VA_ARGS__)
 #endif
 
-}
 
 #if CZMICROAUDIO_MEMTRACKER_ENABLED
 	#define CZMICROAUDIO_ALLOC(size) MemoryTracker::alloc(size, __FILE__, __LINE__)
 	#define CZMICROAUDIO_FREE(ptr) MemoryTracker::free(ptr)
 
 	// #TODO : Revise everythere this is used, to check if I should use UniquePtr<T>
-	#define CZMICROAUDIO_NEW(CZOBJECTTYPE, ...) makeUnique(CZOBJECTTYPE, __VA_ARGS__).release()
+	#define CZMICROAUDIO_NEW(CZOBJECTTYPE, ...) makeUnique(CZOBJECTTYPE, ##__VA_ARGS__).release()
 	#define CZMICROAUDIO_DELETE(OBJ) ::cz::microaudio::detail::doDelete(OBJ)
 
 #else
 	#define CZMICROAUDIO_ALLOC(size) malloc(size)
 	#define CZMICROAUDIO_FREE(ptr) free(ptr)
 
-	// #TODO : Revise everythere this is used, to check if I should use UniquePtr<T>
+	// #TODO : Revise everywhere this is used, to check if I should use UniquePtr<T>
 	#define CZMICROAUDIO_NEW(CZOBJECTTYPE) makeUnique(CZOBJECTTYPE).release()
 	#define CZMICROAUDIO_DELETE(OBJ) ::cz::microaudio::detail::doDelete(OBJ)
 #endif

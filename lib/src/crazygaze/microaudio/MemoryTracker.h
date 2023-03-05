@@ -1,11 +1,23 @@
 #pragma once
 
-#include <stdint.h>
 #include <crazygaze/microaudio/Config.h>
 #include <crazygaze/microaudio/LinkedList.h>
 
-#define CZ_MEMORYTRACKER_TRACK_LOCATION 1
-#define CZ_MEMORYTRACKER_CHECK_FREE 1
+#ifndef CZMICROAUDIO_MEMTRACKER_TRACK_LOCATION
+	#if CZMICROAUDIO_DEBUG
+		#define CZMICROAUDIO_MEMTRACKER_TRACK_LOCATION 1
+	#else
+		#define CZMICROAUDIO_MEMTRACKER_TRACK_LOCATION 0
+	#endif
+#endif
+
+#ifndef CZMICROAUDIO_MEMTRACKER_CHECK_FREE
+	#if CZMICROAUDIO_DEBUG
+		#define CZMICROAUDIO_MEMTRACKER_CHECK_FREE 1
+	#else
+		#define CZMICROAUDIO_MEMTRACKER_CHECK_FREE 0
+	#endif
+#endif
 
 namespace cz::microaudio
 {
@@ -16,13 +28,13 @@ public:
 
 	struct AllocInfo : DoublyLinked<AllocInfo>
 	{
-	#if CZ_MEMORYTRACKER_CHECK_FREE
+	#if CZMICROAUDIO_MEMTRACKER_CHECK_FREE
 		 // The actual ptr the application uses.
 		 // This is only needed to validate if a free was passed a valid pointer.
 		void* ptr;
 	#endif
 
-	#if CZ_MEMORYTRACKER_TRACK_LOCATION
+	#if CZMICROAUDIO_MEMTRACKER_TRACK_LOCATION
 		const char* file;
 		uint32_t line;
 	#endif
