@@ -29,7 +29,6 @@ struct Foo
 	uint32_t a = 0xBAADF00D;
 };
 
-
 struct UniquePtrTestHarness
 {
 	UniquePtrTestHarness()

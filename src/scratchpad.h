@@ -3,9 +3,32 @@
 #include <crazygaze/microaudio/Output.h>
 #include <crazygaze/microaudio/AudioSource.h>
 #include "../media/birds_48000.h"
+#include "SerialStringReader.h"
+
+#if CZMICROAUDIO_PLATFORM_ARDUINO
+	#define USE_WAVESHARE_PICO_AUDIO 1
+#else
+	#define USE_WAVESHARE_PICO_AUDIO 0
+#endif
+
+#if USE_WAVESHARE_PICO_AUDIO
+	// minimal example to setup MCLK clock with PIO, used that in combination with I2S library
+	#include "MCLK/MCLK.h"
+	// changing clock
+	#include <pico/stdlib.h>
+
+	struct FakeMCLK
+	{
+		void setPin(int) {}
+		bool begin(int, int) { return true;}
+	};
+	MCLK mclk;
+#endif
 
 using namespace cz::microaudio;
 #define MySerial Serial1 
+
+cz::SerialStringReader<> gSerialStringReader;
 
 struct MyCore : public Core
 {
@@ -79,22 +102,68 @@ private:
 MyCore gCore;
 DefaultOutput gOutput;
 constexpr size_t birds_48000_raw_numFrames = sizeof(birds_48000_raw) / sizeof(birds_48000_raw[0]) / 2;
+
+#if USE_WAVESHARE_PICO_AUDIO
+#endif
+
+
 SimpleAudioSource gSrc(reinterpret_cast<const int16_t*>(birds_48000_raw), birds_48000_raw_numFrames);
 
 void setup()
 {
 	MySerial.begin(115200);
+	gSerialStringReader.begin(MySerial);
+
 	while (!MySerial) {
 		; // wait for serial port to connect. Needed for native USB port only
 	}
 
 	MySerial.println("Starting");
-	gOutput.begin(gSrc, nullptr);
+
+	OutputConfig cfg;
+#if USE_WAVESHARE_PICO_AUDIO
+	DefaultOutput::Options opts;
+	opts.DATAPin = 22;
+	mclk.setPin(26);
+	opts.baseClockPin = 27;
+	opts.swapClocks = true;
+	cfg.sampleRate = 48000;
+	cfg.platformOptions = &opts;
+	constexpr int mclkMultiplier = 192;
+
+	// Set CPU speed for a good ratio with Multipler*fs -- flag to block if requested speed cannot be achieved
+	// Don't really understand these multipliers well yet, but this seems to work for me
+	MySerial.print("Setting sysclock...");
+	set_sys_clock_khz(cfg.sampleRate*4, true);
+	MySerial.println("done.");
+
+	MySerial.print("Starting mclk...");
+	if (mclk.begin(cfg.sampleRate, mclkMultiplier))
+	{
+		MySerial.println("done.");
+	}
+	else
+	{
+		while (1)
+		{
+			MySerial.println("Failed to initialize MCLK!");
+			delay(1000);
+		}
+	}
+#endif
+
+	gOutput.begin(gSrc, &cfg);
 	MySerial.println("Done");
 
-	MemoryTracker::log();
+	//MemoryTracker::log();
 }
 
 void loop()
 {
+	if (gSerialStringReader.tryRead())
+	{
+		const char* cmd = gSerialStringReader.retrieve();
+		MySerial.print("CMD: ");
+		MySerial.println(cmd);
+	}
 }

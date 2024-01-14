@@ -1,0 +1,32 @@
+
+// minimal example to setup MCLK clock with PIO, used that in combination with I2S library
+#include "MCLK.h"
+// changing clock
+#include <pico/stdlib.h>
+
+MCLK mclk;
+#define pMCLK 18 // pin 24
+
+// chose arbitrary samplerate so we can have a cpu clock which is a divider of the MCLK
+const int sampleRate =  40000;
+// typical for many DAC
+const int mclkMultiplier = 256;
+
+void setup() {
+  // set CPU speed for a good ratio with 256*fs -- flag to bock if requested speed cannot be achieved
+  set_sys_clock_khz(102400, true);
+
+  Serial.begin(115200);
+  mclk.setPin(pMCLK);
+  if (!mclk.begin(sampleRate, mclkMultiplier)) {
+    while (1) {
+      Serial.println("Failed to initialize MCLK!");
+      delay(1000);
+    }
+  }
+}
+
+void loop() {
+  // do your things
+  delay(1000);
+}

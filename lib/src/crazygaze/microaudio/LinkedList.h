@@ -189,6 +189,78 @@ public:
 		item->m_next = nullptr;
 	}
 
+	
+	//
+	// Very simple iterator implementation just to allow the use of range-for loops
+	// No effort is made to be a fully compliant iterator
+	//
+	class Iterator
+	{
+	  private:
+		Item* m_value;
+
+	  public:
+
+		Iterator(Item* value) : m_value(value)
+		{
+		}
+
+		Iterator(const Iterator& other) : m_value(other.m_value)
+		{
+		}
+
+		Iterator& operator=(const Iterator& other)
+		{
+			m_value = other.m_value;
+			return *this;
+		}
+
+		// Intentionally returning a pointer instead of a reference.
+		// This is because a DoublyLinkedList<T> "stores" pointers, and not values.
+		// Might look unusual in a for ranged-loop, so feel free to disagree. :)
+		Item* operator*() const
+		{
+			assert(m_value);
+			return m_value;
+		}
+
+		bool operator == (const Iterator& rhs) const
+		{
+			return m_value == rhs.m_value;
+		}
+
+		bool operator != (const Iterator& rhs) const
+		{
+			return m_value != rhs.m_value;
+		}
+
+		Iterator& operator++ ()
+		{
+			assert(m_value);
+			m_value = m_value->nextLinkedItem();
+			return *this;
+		}
+
+		Iterator operator ++(int) // postfix
+		{
+			Iterator temp = *this;
+			assert(m_value);
+			m_value = m_value->nextLinkedItem();
+			return temp;
+		}
+	};
+
+	Iterator begin()
+	{
+		return Iterator(m_first);
+	}
+
+	// end is always nullptr. This is intentional
+	Iterator end()
+	{
+		return Iterator(nullptr);
+	}
+
 private:
 	T* m_first = nullptr;
 	T* m_last = nullptr;

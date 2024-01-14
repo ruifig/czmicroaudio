@@ -24,7 +24,7 @@ namespace detail
 #if CZMICROAUDIO_MEMTRACKER_ENABLED
 		cz::microaudio::MemoryTracker::free(ptr);
 #else
-		::free(b);
+		::free(ptr);
 #endif
 	}
 

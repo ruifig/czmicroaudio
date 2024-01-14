@@ -24,7 +24,7 @@ struct OutputConfig
 	* \note Specify 0 to use the recommended value.
 	* \note Supported values depend on the driver type used.
 	*/
-	uint32_t sampleRate;
+	uint32_t sampleRate = 0;
 
 	/*!
 	* \brief 8 for 8 bits output, or 16 for 16 bits output
@@ -33,7 +33,7 @@ struct OutputConfig
 	* \note Specify 0 to use recommended value.
 	* \note Supported values depend on the driver type used.
 	*/
-	uint8_t bitDepth;
+	uint8_t bitDepth = 0;
 
 	/*!
 	* \brief Number of output channels.
@@ -43,7 +43,7 @@ struct OutputConfig
 	* \note Specify 0 to use recommended value.
 	* \note Supported values depend on the driver type used
 	*/
-	uint8_t numChannels;
+	uint8_t numChannels = 0;
 
 	/*!
 	* \brief Size of the buffer to use, in milliseconds.
@@ -52,14 +52,14 @@ struct OutputConfig
 	*
 	* \note Specify 0 to use the recommended value.
 	*/
-	uint16_t bufSizeMs;
+	uint16_t bufSizeMs = 0;
 
 	/*
 	* Platform specific options.
 	* If this is specified, then it should be a pointer to struct specific to the output being used.
 	* E.g: If on Arduino, using the ArduinoI2SOutput, this should be a pointer to a ArduinoI2SOutput::Options struct
 	*/
-	void* platformOptions;
+	void* platformOptions = nullptr;
 };
 
 /*!

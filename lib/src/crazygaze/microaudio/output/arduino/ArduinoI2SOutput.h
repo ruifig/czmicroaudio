@@ -12,17 +12,27 @@ public:
 	struct Options
 	{
 		/*
-		* What pin to use for I2S BCLK.
-		* The LRCLK will be BCLKPin+1
-		* See https://arduino-pico.readthedocs.io/en/latest/i2s.html
-		*/
-		int BCLKPin = 26;
-
-		/*
 		* DATA output pin
 		* See https://arduino-pico.readthedocs.io/en/latest/i2s.html
 		*/
-		int DATAPin = 28;
+		int DATAPin = 22;
+
+		/*
+		* What base pin to use for BCLK and LRCLK.
+		* 
+		* This defines what pins to use for BCLK and LRCLK, since they need to be consecutive.
+		* Which one is first depends on the "swapClocks" field.
+		*
+		* See https://arduino-pico.readthedocs.io/en/latest/i2s.html
+		*/
+		int baseClockPin = 27;
+
+		/*
+		* Arduino-pico core (see https://arduino-pico.readthedocs.io/en/latest/i2s.html) expects the BCLK/LRCLK pin pair as BCLK first,
+		* but some I2S boards (e.g: Rev2.1 of https://www.waveshare.com/wiki/Pico-Audio ), expect LRCLK first.
+		* Settign this to true swaps of those pins, thus supporting such boards.
+		*/
+		bool swapClocks = false;
 	};
 
 	ArduinoI2SOutput();

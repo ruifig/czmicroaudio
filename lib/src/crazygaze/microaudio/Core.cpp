@@ -48,15 +48,17 @@ Core* Core::get()
 	return ms_instance;
 }
 
-#if CZMICROAUDIO_ERRORCALLBACK_ENABLED
 void Core::onError(Error error)
 {
-}
+	// ... If this needs any code here, then put it inside the #if, so it gets compiled out even if the linker still leaves Core's vtable.
+#if CZMICROAUDIO_ERRORCALLBACK_ENABLED
 #endif
+}
 
-#if CZMICROAUDIO_LOG_ENABLED
 void Core::onLog(LogLevel level, const char *fmt, ...)
 {
+	// ... If this needs any code here, then put it inside the #if, so it gets compiled out even if the linker still leaves Core's vtable.
+#if CZMICROAUDIO_LOG_ENABLED
 	va_list args;
 	va_start(args, fmt);
 	char buf[256];
@@ -64,12 +66,15 @@ void Core::onLog(LogLevel level, const char *fmt, ...)
 	va_end(args);
 
 	onLogSimple(level, buf);
+#endif
 }
 
 void Core::onLogSimple(LogLevel, const char* str)
 {
+	// ... If this needs any code here, then put it inside the #if, so it gets compiled out even if the linker still leaves Core's vtable.
+#if CZMICROAUDIO_LOG_ENABLED
 	Serial.println(str);
-}
 #endif
+}
 
 } // namespace cz

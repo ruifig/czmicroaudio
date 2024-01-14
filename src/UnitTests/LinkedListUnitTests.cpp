@@ -5,7 +5,7 @@ namespace
 {
 
 template<typename T>
-class TestableDoublyLinked : cz::microaudio::DoublyLinked<T>
+class TestableDoublyLinked : public cz::microaudio::DoublyLinked<T>
 {
 	public:
 	using cz::microaudio::DoublyLinked<T>::m_previous;
@@ -341,6 +341,22 @@ TEST_CASE("LinkedList-remove", "[czmicroaudio][linkedlist]")
 	harness.checkLinks(3, 1, -1);
 	CHECK(harness.list.front() == &harness.foos[1]);
 	CHECK(harness.list.back() == &harness.foos[3]);
+}
+
+TEST_CASE("LinkedList-iterators", "[czmicroaudio][linkedlist]")
+{
+	LinkedListTestHarness harness;
+	for(auto&& f : harness.foos)
+	{
+		harness.list.pushBack(&f);
+	}
+
+	int idx = 0;
+	for (auto&& foo : harness.list)
+	{
+		CHECK(foo->n == idx);
+		idx++;
+	}
 }
 
 

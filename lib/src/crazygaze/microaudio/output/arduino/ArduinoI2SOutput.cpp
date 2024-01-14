@@ -45,7 +45,11 @@ Error ArduinoI2SOutput::begin(AudioSource& source, const OutputConfig* cfg)
 		m_cfgOptions = *reinterpret_cast<const Options*>(cfg->platformOptions);
 	}
 
-	m_i2s.setBCLK(m_cfgOptions.BCLKPin);
+	m_i2s.setBCLK(m_cfgOptions.baseClockPin);
+	if (m_cfgOptions.swapClocks)
+	{
+		m_i2s.swapClocks();
+	}
 	m_i2s.setDATA(m_cfgOptions.DATAPin);
 	m_i2s.setBitsPerSample(m_cfg.bitDepth);
 	m_i2s.setFrequency(m_cfg.sampleRate);

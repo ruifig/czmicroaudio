@@ -26,14 +26,9 @@ namespace cz::microaudio
 		 */
 		static Core* get();
 
-#if CZMICROAUDIO_ERRORCALLBACK_ENABLED
 		virtual void onError(Error error);
-#endif
-
-#if CZMICROAUDIO_LOG_ENABLED
 		virtual void onLog(LogLevel level, const char *fmt, ...);
 		virtual void onLogSimple(LogLevel, const char *str);
-#endif
 
 	private:
 		inline static Core* ms_instance = nullptr;
